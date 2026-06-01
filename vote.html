@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>投票｜算了啦！老闆</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--R:#C0392B;--Y:#B7860B;--G:#1A6B35;--bg:#0C0C0C;--card:#181818;--bdr:#252525;--txt:#EAE7E0;}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,'Helvetica Neue',sans-serif;min-height:100svh;display:flex;align-items:center;justify-content:center;padding:24px 20px;}
+.wrap{width:100%;max-width:400px;}
+.pg{display:none;}
+.pg.on{display:block;animation:fi .2s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.logo{font-size:10px;letter-spacing:.2em;color:#444;text-align:center;margin-bottom:8px;}
+.title{font-size:24px;font-weight:900;text-align:center;margin-bottom:4px;}
+.sub{font-size:13px;color:#666;text-align:center;margin-bottom:30px;}
+.lbl{font-size:11px;color:#666;margin-bottom:7px;letter-spacing:.05em;}
+.seat-in{display:block;width:100%;padding:16px;background:var(--card);border:1.5px solid var(--bdr);border-radius:12px;color:var(--txt);font-size:32px;font-weight:700;text-align:center;letter-spacing:.1em;outline:none;font-family:inherit;}
+.seat-in:focus{border-color:#555;}
+.hint{font-size:11px;color:#444;text-align:center;margin-top:6px;}
+.err{font-size:12px;color:var(--R);text-align:center;min-height:18px;margin:8px 0;}
+.go{display:block;width:100%;padding:18px;background:var(--txt);color:#0C0C0C;border:none;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;}
+.go:active{opacity:.8;}
+.seat-tag{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--bdr);border-radius:9px;margin-bottom:14px;}
+.seat-tag .sn{font-size:22px;font-weight:800;}
+.seat-tag .sl{font-size:10px;color:#555;}
+.ep-row{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;}
+.ep-chip{padding:3px 10px;border-radius:20px;font-size:10px;background:var(--card);color:#555;border:1px solid var(--bdr);}
+.ep-chip.cur{background:var(--R);color:#fff;border-color:var(--R);font-weight:700;}
+.q{font-size:15px;font-weight:700;text-align:center;color:#C8C5BC;line-height:1.55;margin-bottom:22px;min-height:48px;padding:0 2px;}
+.vlist{display:flex;flex-direction:column;gap:10px;}
+.vbtn{width:100%;padding:22px 16px;border:none;border-radius:14px;display:flex;align-items:center;gap:13px;cursor:pointer;font-family:inherit;user-select:none;}
+.vbtn:active{transform:scale(.97);}
+.vbtn.r{background:var(--R);color:#fff;}
+.vbtn.y{background:var(--Y);color:#F5DFA0;}
+.vbtn.g{background:var(--G);color:#A8E6C0;}
+.ico{font-size:26px;flex-shrink:0;}
+.tx{display:flex;flex-direction:column;align-items:flex-start;}
+.mn{font-size:17px;font-weight:800;}
+.sb{font-size:11px;opacity:.75;font-weight:400;margin-top:2px;}
+.done-wrap{text-align:center;padding:16px 0;}
+.d-ico{font-size:68px;margin-bottom:12px;display:block;}
+.d-clr{font-size:30px;font-weight:900;margin-bottom:6px;}
+.d-msg{font-size:14px;color:#666;margin-bottom:28px;line-height:1.6;}
+.chg{padding:10px 22px;background:transparent;border:1.5px solid var(--bdr);border-radius:8px;color:#666;font-size:12px;cursor:pointer;font-family:inherit;}
+.wait-wrap{text-align:center;padding:20px 0;}
+.w-ico{font-size:48px;margin-bottom:12px;display:block;}
+.w-msg{font-size:15px;color:#666;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="pg on" id="pgSeat">
+  <div class="logo">南投戲院 A廳 · 算了啦！老闆</div>
+  <div class="title">市場觀察團</div>
+  <div class="sub">輸入座位號碼，加入今天的市場反應</div>
+  <div class="lbl">你的座位號碼</div>
+  <input class="seat-in" id="sIn" type="tel" placeholder="03-07" maxlength="6"
+    autocomplete="off" oninput="fmt(this)" onkeydown="if(event.key==='Enter')go()">
+  <div class="hint">格式：排號 - 欄號　例如 01-01、05-12、08-15</div>
+  <div class="err" id="err"></div>
+  <button class="go" onclick="go()">進入投票 →</button>
+</div>
+
+<div class="pg" id="pgVote">
+  <div class="seat-tag">
+    <div><div class="sn" id="dSeat">—</div><div class="sl">我的座位</div></div>
+  </div>
+  <div class="ep-row" id="epRow"></div>
+  <div class="q" id="qTxt">等待投票開始…</div>
+  <div class="vlist">
+    <button class="vbtn r" onclick="vote('red')">
+      <span class="ico">🔴</span><div class="tx"><span class="mn">紅牌</span><span class="sb" id="rSub">不懂，不想靠近</span></div>
+    </button>
+    <button class="vbtn y" onclick="vote('yellow')">
+      <span class="ico">🟡</span><div class="tx"><span class="mn">黃牌</span><span class="sb" id="ySub">有點懂，還差一點</span></div>
+    </button>
+    <button class="vbtn g" onclick="vote('green')">
+      <span class="ico">🟢</span><div class="tx"><span class="mn">綠牌</span><span class="sb" id="gSub">懂了，有興趣</span></div>
+    </button>
+  </div>
+</div>
+
+<div class="pg" id="pgDone">
+  <div class="done-wrap">
+    <span class="d-ico" id="dIco">✅</span>
+    <div class="d-clr" id="dClr">已投票</div>
+    <div class="d-msg" id="dMsg">你的反應已記錄。<br>謝謝你的誠實，這是給店家最好的禮物。</div>
+    <button class="chg" onclick="chg()">更改我的選擇</button>
+  </div>
+</div>
+
+<div class="pg" id="pgWait">
+  <div class="wait-wrap">
+    <span class="w-ico">⏳</span>
+    <div class="w-msg" id="wMsg">等待投票開始…</div>
+  </div>
+</div>
+
+</div>
+<script>
+const DB_URL='https://suanlela-vote-default-rtdb.firebaseio.com';
+const EP_Q={'ep1-pre':'你聽得懂這家店在賣什麼嗎？','ep1-post':'修正後，你更清楚這家店了嗎？','ep2-pre':'你知道要怎麼開始消費嗎？','ep2-post':'修正後，你知道怎麼靠近了嗎？','ep3-pre':'這段內容出現在你手機上，你會留下來還是滑走？','ep3-post':'修正後，你願意停下來看嗎？','ep4-pre':'你知道這個商品為什麼值得買嗎？','ep4-post':'修正後，你清楚怎麼買了嗎？'};
+const EP_OPT={'ep1-pre':['聽不懂，不知道在賣什麼','大概懂，但沒有被吸引','聽得懂，想進一步了解'],'ep1-post':['還是聽不懂','有進步但還差一點','清楚多了'],'ep2-pre':['不知道怎麼開始消費','有點懂，但還沒想去','知道怎麼買，有興趣'],'ep2-post':['還是不清楚','稍微清楚了','清楚多了'],'ep3-pre':['直接滑走','停下來看完','想按讚、分享或行動'],'ep3-post':['還是滑走','願意停下來看','很想採取行動'],'ep4-pre':['不知道為什麼要買','有點懂，但沒被說服','知道誰適合買、怎麼買'],'ep4-post':['還是不清楚','稍微清楚了','清楚多了']};
+const CHIPS=['EP1 品牌','EP2 商業','EP3 行銷','EP4 商品'];
+let seat='',rid=null,pollT=null;
+
+function pg(id){['pgSeat','pgVote','pgDone','pgWait'].forEach(p=>document.getElementById(p).classList.remove('on'));document.getElementById(id).classList.add('on');}
+function fmt(el){let v=el.value.replace(/[^0-9]/g,'');if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2,4);el.value=v;}
+function go(){
+  const v=document.getElementById('sIn').value.trim();
+  const m=v.match(/^(\d{2})-(\d{2,3})$/);
+  if(!m){document.getElementById('err').textContent='格式錯誤，例如：03-07、01-14';return;}
+  const r=parseInt(m[1]),c=parseInt(m[2]);
+  if(r<1||r>8||c<1||c>30){document.getElementById('err').textContent='找不到這個座位，請再確認';return;}
+  seat=v;document.getElementById('err').textContent='';
+  document.getElementById('dSeat').textContent=seat;
+  pg('pgVote');startPoll();
+}
+function startPoll(){poll();if(pollT)clearInterval(pollT);pollT=setInterval(poll,2500);}
+async function poll(){
+  try{
+    const res=await fetch(`${DB_URL}/round.json`);
+    const d=await res.json();
+    if(!d||!d.active){document.getElementById('wMsg').textContent='等待投票開始…';if(rid){pg('pgWait');}rid=null;return;}
+    if(d.id!==rid){rid=d.id;updUI(d);pg('pgVote');}
+  }catch(e){}
+}
+function updUI(d){
+  const k=(d.ep||'ep1')+'-'+(d.phase||'pre');
+  document.getElementById('qTxt').textContent=EP_Q[k]||'請投票';
+  const o=EP_OPT[k]||['紅牌','黃牌','綠牌'];
+  document.getElementById('rSub').textContent=o[0];
+  document.getElementById('ySub').textContent=o[1];
+  document.getElementById('gSub').textContent=o[2];
+  const n=parseInt((d.ep||'ep1').replace('ep',''))-1;
+  document.getElementById('epRow').innerHTML=CHIPS.map((l,i)=>`<span class="ep-chip${i===n?' cur':''}">${l}</span>`).join('');
+}
+async function vote(color){
+  if(!seat||!rid)return;
+  try{
+    await fetch(`${DB_URL}/votes/${rid}/${seat.replace('-','_')}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({color,seat,ts:Date.now()})});
+    const ico={red:'🔴',yellow:'🟡',green:'🟢'}[color];
+    const nm={red:'紅牌',yellow:'黃牌',green:'綠牌'}[color];
+    const msg={red:'你的誠實是給店家最好的禮物。\n紅牌不是傷害，是市場給他的提醒。',yellow:'謝謝！黃牌代表店家差一步就能說服你。',green:'謝謝！綠牌代表這家店成功傳遞了價值。'}[color];
+    document.getElementById('dIco').textContent=ico;
+    document.getElementById('dClr').textContent=nm;
+    document.getElementById('dMsg').innerHTML=msg.replace('\n','<br>');
+    pg('pgDone');
+  }catch(e){alert('投票失敗，請重試');}
+}
+function chg(){pg('pgVote');}
+</script>
+</body>
+</html>

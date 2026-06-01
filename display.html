@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>投影幕｜算了啦！老闆</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--R:#C0392B;--Y:#B7860B;--G:#1A6B35;--Rl:#E74C3C;--Yl:#E2A800;--Gl:#27AE60;}
+html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;}
+.screen{display:none;width:100vw;height:100vh;align-items:center;justify-content:center;flex-direction:column;position:absolute;inset:0;}
+.screen.on{display:flex;}
+/* Standby */
+.sb-yr{font-size:11px;letter-spacing:.25em;color:#222;margin-bottom:18px;}
+.sb-main{font-size:clamp(38px,6.5vw,76px);font-weight:900;line-height:1.18;text-align:center;}
+.sb-ep{font-size:clamp(14px,2.2vw,26px);color:#444;margin-top:8px;letter-spacing:.05em;}
+.sb-line{width:60px;height:1px;background:#1a1a1a;margin:22px auto;}
+.sb-cr{font-size:10px;color:#222;letter-spacing:.14em;}
+/* Timer */
+.tm-q{font-size:clamp(14px,2.4vw,28px);color:#555;text-align:center;padding:0 48px;margin-bottom:22px;line-height:1.5;max-width:840px;}
+.tm-big{font-size:clamp(100px,21vw,260px);font-weight:900;line-height:1;letter-spacing:-.02em;}
+.tm-big.w{color:var(--Yl);}
+.tm-big.d{color:var(--Rl);animation:dp .5s infinite alternate;}
+@keyframes dp{from{opacity:1}to{opacity:.3}}
+.tm-bar-w{width:54vw;max-width:560px;height:5px;background:#111;border-radius:3px;margin-top:24px;overflow:hidden;}
+.tm-bar{height:100%;border-radius:3px;background:var(--Gl);transition:width .9s linear,background .4s;}
+.tm-bar.w{background:var(--Yl);}.tm-bar.d{background:var(--Rl);}
+/* Vote */
+.vt-t{font-size:clamp(16px,2.8vw,34px);font-weight:800;text-align:center;margin-bottom:6px;}
+.vt-s{font-size:clamp(12px,1.6vw,18px);color:#555;text-align:center;margin-bottom:32px;}
+.vt-bars{width:72vw;max-width:680px;display:flex;flex-direction:column;gap:14px;}
+.vb-r{display:flex;align-items:center;gap:14px;}
+.vb-ico{font-size:clamp(18px,3vw,38px);width:46px;text-align:center;flex-shrink:0;}
+.vb-track{flex:1;height:48px;background:#0e0e0e;border-radius:7px;overflow:hidden;}
+.vb-fill{height:100%;border-radius:7px;display:flex;align-items:center;padding-left:14px;font-size:clamp(14px,2vw,24px);font-weight:800;color:#fff;transition:width .85s cubic-bezier(.4,0,.2,1);}
+.vb-fill.rf{background:linear-gradient(90deg,#7B241C,var(--Rl));}
+.vb-fill.yf{background:linear-gradient(90deg,#6A4500,var(--Yl));color:#0C0C0C;}
+.vb-fill.gf{background:linear-gradient(90deg,#0E4521,var(--Gl));}
+.vb-pct{font-size:clamp(14px,1.8vw,22px);font-weight:700;color:#333;min-width:50px;text-align:right;}
+.vt-rate{margin-top:28px;text-align:center;}
+.vt-rl{font-size:clamp(11px,1.4vw,16px);color:#333;}
+.vt-rn{font-size:clamp(44px,8vw,100px);font-weight:900;color:var(--Yl);line-height:1.1;}
+/* Compare */
+.cm-shop{font-size:clamp(16px,2.8vw,36px);font-weight:800;margin-bottom:28px;}
+.cm-cols{display:flex;align-items:flex-end;gap:clamp(28px,5vw,70px);}
+.cm-col{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.cm-lbl{font-size:clamp(11px,1.6vw,20px);color:#333;}
+.cm-rate{font-size:clamp(58px,12vw,148px);font-weight:900;line-height:1;}
+.cm-before{color:#222;}.cm-after{color:var(--Gl);}
+.cm-arrow{font-size:clamp(24px,5vw,60px);color:#222;padding-bottom:20px;}
+.cm-diff{font-size:clamp(14px,2.2vw,28px);color:var(--Yl);margin-top:14px;}
+.cm-level{font-size:clamp(22px,4.5vw,56px);font-weight:900;margin-top:18px;padding:12px 44px;border-radius:9px;}
+.lv-a{color:var(--Gl);background:rgba(26,107,53,.12);border:2px solid rgba(39,174,96,.2);}
+.lv-b{color:#3498DB;background:rgba(52,152,219,.1);border:2px solid rgba(52,152,219,.2);}
+.lv-c{color:var(--Yl);background:rgba(183,134,11,.1);border:2px solid rgba(183,134,11,.2);}
+.lv-d{color:#E67E22;background:rgba(230,126,34,.1);border:2px solid rgba(230,126,34,.2);}
+.lv-e{color:var(--Rl);background:rgba(192,57,43,.1);border:2px solid rgba(192,57,43,.2);}
+/* Scoreboard */
+.sbd-t{font-size:clamp(16px,2.6vw,32px);font-weight:800;margin-bottom:20px;}
+.sbd-tbl{width:86vw;max-width:940px;}
+.sbd-hd{display:grid;grid-template-columns:1fr 68px 68px 68px 68px 88px;gap:5px;padding:8px 14px;background:#0e0e0e;border-radius:5px;font-size:10px;color:#2a2a2a;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;}
+.sbd-dr{display:grid;grid-template-columns:1fr 68px 68px 68px 68px 88px;gap:5px;padding:9px 14px;background:#0a0a0a;border:1px solid #111;border-radius:5px;margin-bottom:3px;align-items:center;}
+.sbd-nm{color:#EAE7E0;font-weight:600;font-size:clamp(12px,1.6vw,17px);}
+.sbd-n{text-align:center;color:#2a2a2a;font-size:clamp(12px,1.6vw,17px);}
+.sbd-tot{text-align:center;color:var(--Yl);font-weight:800;font-size:clamp(14px,2vw,20px);}
+/* Unlock */
+.ul-ico{font-size:clamp(56px,9vw,110px);margin-bottom:14px;}
+.ul-shop{font-size:clamp(20px,3.6vw,48px);font-weight:800;margin-bottom:8px;}
+.ul-vb{font-size:clamp(12px,1.8vw,22px);color:#333;margin-bottom:10px;}
+.ul-res{font-size:clamp(28px,5.5vw,70px);font-weight:900;color:var(--Yl);text-align:center;line-height:1.2;}
+.ul-sc{font-size:clamp(12px,1.8vw,22px);color:#222;margin-top:18px;}
+.wm{position:absolute;bottom:12px;right:16px;font-size:9px;color:#111;letter-spacing:.12em;}
+</style>
+</head>
+<body>
+<div class="screen on" id="sc-standby">
+  <div class="sb-yr">南投戲院　EST. 1921</div>
+  <div class="sb-main">《算了啦！老闆》<br>南投開店生存戰</div>
+  <div class="sb-ep" id="sb-ep">EP1｜品牌定位戰</div>
+  <div class="sb-line"></div>
+  <div class="sb-cr">國家發展委員會　指導單位　｜　南投戲院 × 好戲文化工作室</div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+<div class="screen" id="sc-timer">
+  <div class="tm-q" id="tm-q">請用一句話說清楚你是誰</div>
+  <div class="tm-big" id="tm-big">20</div>
+  <div class="tm-bar-w"><div class="tm-bar" id="tm-bar" style="width:100%"></div></div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+<div class="screen" id="sc-vpre">
+  <div class="vt-t" id="vt-pre-t">前測市場反應</div>
+  <div class="vt-s" id="vt-pre-s">觀眾第一次聽完的直覺反應</div>
+  <div class="vt-bars">
+    <div class="vb-r"><div class="vb-ico">🔴</div><div class="vb-track"><div class="vb-fill rf" id="prR" style="width:0%">0</div></div><div class="vb-pct" id="prRp">0%</div></div>
+    <div class="vb-r"><div class="vb-ico">🟡</div><div class="vb-track"><div class="vb-fill yf" id="prY" style="width:0%">0</div></div><div class="vb-pct" id="prYp">0%</div></div>
+    <div class="vb-r"><div class="vb-ico">🟢</div><div class="vb-track"><div class="vb-fill gf" id="prG" style="width:0%">0</div></div><div class="vb-pct" id="prGp">0%</div></div>
+  </div>
+  <div class="vt-rate"><div class="vt-rl">市場率</div><div class="vt-rn" id="preRD">—</div></div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+<div class="screen" id="sc-vpost">
+  <div class="vt-t" id="vt-post-t">後測市場反應</div>
+  <div class="vt-s">導師急救後的市場反應</div>
+  <div class="vt-bars">
+    <div class="vb-r"><div class="vb-ico">🔴</div><div class="vb-track"><div class="vb-fill rf" id="poR" style="width:0%">0</div></div><div class="vb-pct" id="poRp">0%</div></div>
+    <div class="vb-r"><div class="vb-ico">🟡</div><div class="vb-track"><div class="vb-fill yf" id="poY" style="width:0%">0</div></div><div class="vb-pct" id="poYp">0%</div></div>
+    <div class="vb-r"><div class="vb-ico">🟢</div><div class="vb-track"><div class="vb-fill gf" id="poG" style="width:0%">0</div></div><div class="vb-pct" id="poGp">0%</div></div>
+  </div>
+  <div class="vt-rate"><div class="vt-rl">市場率</div><div class="vt-rn" id="postRD">—</div><div class="vt-rl" id="postRSub" style="margin-top:4px;"></div></div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+<div class="screen" id="sc-compare">
+  <div class="cm-shop" id="cm-shop">前後對比</div>
+  <div class="cm-cols">
+    <div class="cm-col"><div class="cm-lbl">前測</div><div class="cm-rate cm-before" id="cm-pre">—</div></div>
+    <div class="cm-arrow">→</div>
+    <div class="cm-col"><div class="cm-lbl">後測</div><div class="cm-rate cm-after" id="cm-post">—</div></div>
+  </div>
+  <div class="cm-diff" id="cm-diff">—</div>
+  <div class="cm-level" id="cm-level">—</div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+<div class="screen" id="sc-scoreboard">
+  <div class="sbd-t" id="sbd-t">生存值榜</div>
+  <div class="sbd-tbl">
+    <div class="sbd-hd"><div>店家</div><div style="text-align:center">EP1</div><div style="text-align:center">EP2</div><div style="text-align:center">EP3</div><div style="text-align:center">EP4</div><div style="text-align:center">累積</div></div>
+    <div id="sbd-rows"></div>
+  </div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+<div class="screen" id="sc-unlock">
+  <div class="ul-ico" id="ul-ico">🎉</div>
+  <div class="ul-shop" id="ul-shop">店家</div>
+  <div class="ul-vb">解鎖</div>
+  <div class="ul-res" id="ul-res">限動曝光資格</div>
+  <div class="ul-sc" id="ul-sc">累積生存值 — 點</div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+<div class="screen" id="sc-black" style="background:#000;"></div>
+
+<script>
+const EP_LABELS=['EP1｜品牌定位戰','EP2｜商業模式戰','EP3｜品牌行銷戰','EP4｜商品營運戰'];
+const EP_VT=['品牌定位｜市場理解度','商業模式｜消費意願','品牌行銷｜內容留存率','商品營運｜購買意願'];
+const EP_VS=['觀眾聽完後的直覺反應','觀眾了解商業路徑後的反應','觀眾看完行銷內容後的反應','觀眾聽完商品介紹後的反應'];
+const SHOPS=['靜日香研','胖昇','新協泰米行','九尖茶廠','波嶼','紙布家','嘉禮慕華','馨眠','樸樂咖啡','安餃子'];
+
+let preRate=null,postRate=null;
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));const el=document.getElementById('sc-'+id);if(el)el.classList.add('on');}
+
+function setBar(fid,pid,pct,n){const fe=document.getElementById(fid);const pe=document.getElementById(pid);if(fe){fe.style.width=Math.max(pct>0?5:0,pct)+'%';fe.textContent=n;}if(pe)pe.textContent=Math.round(pct)+'%';}
+
+function renderVote(pre,r,y,g,rate){
+  const tot=r+y+g;
+  const rp=tot?r/tot*100:0,yp=tot?y/tot*100:0,gp=tot?g/tot*100:0;
+  const pf=pre?'pr':'po',pp=pre?'pr':'po';
+  setBar(pf+'R',pp+'Rp',rp,r);setBar(pf+'Y',pp+'Yp',yp,y);setBar(pf+'G',pp+'Gp',gp,g);
+  document.getElementById(pre?'preRD':'postRD').textContent=rate!==null?rate+'%':'—';
+  if(!pre&&preRate!==null&&rate!==null){
+    document.getElementById('postRSub').textContent='前測 '+preRate+'%　→　後測 '+rate+'%　進步 '+Math.round((rate-preRate)*10)/10+'%';
+  }
+}
+
+function renderCompare(){
+  document.getElementById('cm-pre').textContent=preRate!==null?preRate+'%':'—';
+  document.getElementById('cm-post').textContent=postRate!==null?postRate+'%':'—';
+  if(preRate!==null&&postRate!==null){
+    const diff=Math.round((postRate-preRate)*10)/10;
+    document.getElementById('cm-diff').textContent=diff>=0?'提升 '+diff+' 個百分點':'退步 '+Math.abs(diff)+' 個百分點';
+    const ps=diff>=40?70:diff>=30?60:diff>=20?50:diff>=10?35:diff>=1?20:0;
+    let tx='需要回診',cls='lv-e';
+    if(ps>=60){tx='急救成功 🎉';cls='lv-a';}else if(ps>=50){tx='明顯好轉 ✓';cls='lv-b';}else if(ps>=35){tx='暫時穩住';cls='lv-c';}else if(ps>=20){tx='持續觀察';cls='lv-d';}
+    const lv=document.getElementById('cm-level');lv.textContent=tx;lv.className='cm-level '+cls;
+  }
+}
+
+function renderSb(scores,ep){
+  document.getElementById('sbd-t').textContent=EP_LABELS[ep-1]+' 生存值榜';
+  const wrap=document.getElementById('sbd-rows');wrap.innerHTML='';
+  SHOPS.forEach(s=>{const sc=scores[s]||[0,0,0,0];const tot=sc.reduce((a,b)=>a+(+b||0),0);const dr=document.createElement('div');dr.className='sbd-dr';dr.innerHTML=`<div class="sbd-nm">${s}</div>${sc.map(v=>`<div class="sbd-n">${v||'—'}</div>`).join('')}<div class="sbd-tot">${tot||'—'}</div>`;wrap.appendChild(dr);});
+}
+
+function renderUnlock(shop,res,tot){
+  const im={'限動':'📱','社群貼文':'📣','影廳精':'🎬','影廳廣':'📺','實習':'🤝','票根':'🎟','小店生':'🏆'};
+  let ico='🎉';for(const[k,v] of Object.entries(im)){if(res.includes(k)){ico=v;break;}}
+  document.getElementById('ul-ico').textContent=ico;document.getElementById('ul-shop').textContent=shop;document.getElementById('ul-res').textContent=res;document.getElementById('ul-sc').textContent='累積生存值 '+tot+' 點';
+}
+
+function syncTimer(){
+  try{const t=JSON.parse(localStorage.getItem('timer')||'null');if(!t||Date.now()-t.ts>3000)return;const pct=t.pct,cls=pct<=.2?'d':pct<=.4?'w':'';document.getElementById('tm-big').textContent=t.str;document.getElementById('tm-big').className='tm-big'+(cls?' '+cls:'');if(t.q)document.getElementById('tm-q').textContent=t.q;const bar=document.getElementById('tm-bar');bar.style.width=(pct*100)+'%';bar.className='tm-bar'+(cls?' '+cls:'');}catch(e){}
+}
+
+function poll(){
+  syncTimer();
+  try{
+    const sc=localStorage.getItem('displayScreen');
+    const ep=parseInt(localStorage.getItem('displayEP'))||1;
+    const ph=localStorage.getItem('displayPh')||'pre';
+    const vdRaw=localStorage.getItem('vd');
+    const scoresRaw=localStorage.getItem('shopScores');
+    const ulRaw=localStorage.getItem('unlockInfo');
+
+    if(sc) show(sc);
+
+    document.getElementById('sb-ep').textContent=EP_LABELS[ep-1];
+    document.getElementById('vt-pre-t').textContent=EP_VT[ep-1]+'｜前測';
+    document.getElementById('vt-post-t').textContent=EP_VT[ep-1]+'｜後測';
+    document.getElementById('vt-pre-s').textContent=EP_VS[ep-1];
+    document.getElementById('cm-shop').textContent=EP_LABELS[ep-1]+'　前後對比';
+
+    if(vdRaw){
+      const vd=JSON.parse(vdRaw);
+      if(vd.ph==='pre'){preRate=vd.rate;renderVote(true,vd.r,vd.y,vd.g,vd.rate);}
+      else{postRate=vd.rate;renderVote(false,vd.r,vd.y,vd.g,vd.rate);}
+      if(sc==='compare') renderCompare();
+    }
+    if(scoresRaw&&sc==='scoreboard') renderSb(JSON.parse(scoresRaw),ep);
+    if(ulRaw&&sc==='unlock'){const u=JSON.parse(ulRaw);renderUnlock(u.shop,u.res,u.tot);}
+  }catch(e){}
+}
+
+setInterval(poll,600);poll();
+</script>
+</body>
+</html>
