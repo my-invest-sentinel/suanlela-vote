@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>控制台｜算了啦！老闆</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--R:#C0392B;--Y:#B7860B;--G:#1A6B35;--Rl:#E74C3C;--Yl:#E2A800;--Gl:#27AE60;--bg:#080808;--panel:#0F0F0F;--card:#161616;--bdr:#202020;--txt:#EAE7E0;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:'Helvetica Neue',Arial,sans-serif;}
+.top{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--bdr);flex-shrink:0;gap:8px;}
+.tp-title{font-size:12px;font-weight:700;white-space:nowrap;}
+.ep-row,.ph-row{display:flex;gap:3px;}
+.ep-btn,.ph-btn{padding:4px 10px;border-radius:4px;border:1px solid var(--bdr);background:transparent;color:#555;font-size:10px;cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap;}
+.ep-btn.on{background:var(--R);border-color:var(--R);color:#fff;font-weight:700;}
+.ph-btn.on{background:#1A3A5C;border-color:#1A3A5C;color:#7AB8F5;font-weight:700;}
+.live{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--Gl);}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--Gl);animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.body{display:flex;height:calc(100vh - 40px);}
+.left{width:240px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--bdr);overflow-y:auto;padding:7px;display:flex;flex-direction:column;gap:6px;}
+.sec{background:var(--card);border-radius:6px;padding:8px 10px;}
+.slbl{font-size:9px;color:#3a3a3a;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+/* Round */
+.rs{padding:6px 9px;border-radius:5px;font-size:10px;text-align:center;font-weight:600;}
+.rs-idle{background:#1a1a1a;border:1px solid var(--bdr);color:#3a3a3a;}
+.rs-live{background:rgba(26,107,53,.15);border:1px solid rgba(39,174,96,.3);color:var(--Gl);}
+.rbtns{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+.rbtn{padding:9px;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+.rb-go{background:var(--G);color:#fff;}
+.rb-stop{background:#222;color:#777;}
+.rb-reset{background:#2A1040;color:#CC88FF;}
+/* Stats */
+.sg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;}
+.si{background:#1a1a1a;border-radius:5px;padding:7px 4px;text-align:center;}
+.sn{font-size:26px;font-weight:800;line-height:1;}
+.sn.r{color:var(--Rl);}
+.sn.y{color:var(--Yl);}
+.sn.g{color:var(--Gl);}
+.sl{font-size:9px;color:#3a3a3a;margin-top:2px;}
+.rate-box{background:#1a1a1a;border-radius:5px;padding:8px;text-align:center;margin-top:4px;}
+.rb-num{font-size:28px;font-weight:800;color:var(--Yl);line-height:1;}
+.rb-sub{font-size:9px;color:#3a3a3a;margin-top:2px;}
+.voted-ct{font-size:9px;color:#3a3a3a;text-align:center;margin-top:4px;}
+/* Display */
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.dbtn{padding:7px 3px;border-radius:5px;border:1px solid var(--bdr);background:#1a1a1a;color:#555;font-size:10px;cursor:pointer;text-align:center;font-family:inherit;line-height:1.3;transition:all .12s;}
+.dbtn:hover{background:#222;color:#ccc;}
+.dbtn.on{background:#1A3A5C;border-color:#1A3A5C;color:#7AB8F5;}
+/* Unlock */
+.sel{width:100%;padding:5px 7px;background:#1a1a1a;border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-size:10px;font-family:inherit;outline:none;margin-bottom:4px;}
+.cb{width:100%;padding:7px;background:var(--Y);color:#0C0C0C;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:2px;}
+/* Shop scores */
+.shr{display:flex;align-items:center;gap:4px;padding:4px 0;border-bottom:1px solid #1a1a1a;}
+.shr:last-child{border:none;}
+.shnm{flex:1;font-size:10px;color:#777;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.shin{width:44px;padding:2px 4px;background:#1a1a1a;border:1px solid var(--bdr);border-radius:3px;color:#fff;font-size:11px;text-align:center;font-family:inherit;outline:none;}
+.shtot{font-size:11px;font-weight:700;color:var(--Yl);min-width:26px;text-align:right;}
+/* Timer */
+.td{font-size:44px;font-weight:800;text-align:center;line-height:1;padding:3px 0;}
+.td.w{color:var(--Yl);}
+.td.d{color:var(--Rl);animation:dp .5s infinite alternate;}
+@keyframes dp{from{opacity:1}to{opacity:.3}}
+.tpre{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:4px;}
+.tp{padding:4px 0;border-radius:3px;border:1px solid var(--bdr);background:#1a1a1a;color:#666;font-size:10px;cursor:pointer;text-align:center;font-family:inherit;}
+.tbtns{display:grid;grid-template-columns:2fr 1fr 1fr;gap:3px;}
+.tbtn{padding:7px;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;}
+.tb-go{background:var(--G);color:#fff;}
+.tb-pa{background:var(--Y);color:#000;}
+.tb-rs{background:#2a2a2a;color:#888;}
+.tqin{width:100%;padding:4px 6px;background:#1a1a1a;border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-size:10px;font-family:inherit;outline:none;margin-top:4px;}
+/* SEAT MAP */
+.map-area{flex:1;overflow:auto;padding:12px;background:var(--bg);}
+.map-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.map-title{font-size:11px;color:#3a3a3a;}
+.legend{display:flex;gap:10px;}
+.leg{display:flex;align-items:center;gap:4px;font-size:9px;color:#3a3a3a;}
+.ld{width:9px;height:9px;border-radius:2px;}
+.smap-wrap{background:var(--panel);border-radius:9px;padding:14px 12px 10px;}
+.smap{display:flex;flex-direction:column;gap:3px;}
+.s-row{display:flex;align-items:center;}
+.rnum{font-size:8px;color:#2a2a2a;width:20px;text-align:right;padding-right:4px;flex-shrink:0;}
+.smap-grid{display:grid;grid-template-columns:repeat(30,32px);gap:2px;}
+.seat{width:32px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:600;cursor:pointer;transition:background .3s,box-shadow .25s;border:1px solid transparent;user-select:none;}
+.seat.gap-ph{background:transparent;border:none;pointer-events:none;}
+.seat.gray{background:#1e1e1e;color:#333;border-color:#252525;cursor:default;}
+.seat.idle{background:#1a1a1a;color:#2a2a2a;border-color:#222;}
+.seat.voted-red{background:var(--R);color:#fff;box-shadow:0 0 7px rgba(192,57,43,.55);border-color:var(--Rl);}
+.seat.voted-yellow{background:#7A5800;color:#FFD54F;box-shadow:0 0 7px rgba(183,134,11,.45);border-color:var(--Yl);}
+.seat.voted-green{background:var(--G);color:#A8E6C0;box-shadow:0 0 7px rgba(26,107,53,.55);border-color:var(--Gl);}
+.seat.idle:hover{background:#252525;border-color:#333;}
+.screen-lbl{text-align:center;background:#111;border:1px solid #1a1a1a;border-radius:5px;padding:6px;font-size:9px;color:#2a2a2a;letter-spacing:.15em;margin-top:8px;}
+/* Manual vote popup */
+.mvpop{display:none;position:fixed;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:10px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.6);}
+.mvpop.on{display:flex;gap:5px;}
+.mvbtn{padding:8px 12px;border:none;border-radius:5px;font-size:13px;cursor:pointer;}
+.mv-r{background:var(--R);color:#fff;}
+.mv-y{background:var(--Y);color:#FFD54F;}
+.mv-g{background:var(--G);color:#A8E6C0;}
+.mv-x{background:#333;color:#999;}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="tp-title">《算了啦！老闆》控制台</div>
+  <div class="ep-row">
+    <button class="ep-btn on" id="ep1t" onclick="selEP(1)">EP1 品牌</button>
+    <button class="ep-btn" id="ep2t" onclick="selEP(2)">EP2 商業</button>
+    <button class="ep-btn" id="ep3t" onclick="selEP(3)">EP3 行銷</button>
+    <button class="ep-btn" id="ep4t" onclick="selEP(4)">EP4 商品</button>
+  </div>
+  <div class="ph-row">
+    <button class="ph-btn on" id="phPre" onclick="selPh('pre')">前測</button>
+    <button class="ph-btn" id="phPost" onclick="selPh('post')">後測</button>
+  </div>
+  <div style="font-size:9px;color:#333;" id="topInfo">待機</div>
+  <div class="live"><div class="pulse"></div>LIVE</div>
+</div>
+
+<div class="body">
+<div class="left">
+
+  <div class="sec">
+    <div class="slbl">投票輪次</div>
+    <div class="rs rs-idle" id="rdSt">尚未開始</div>
+    <div class="rbtns">
+      <button class="rbtn rb-go" onclick="startRound()">▶ 開始本輪投票</button>
+      <button class="rbtn rb-stop" onclick="stopRound()">⏹ 結束本輪投票</button>
+      <button class="rbtn rb-reset" onclick="resetRound()">↺ 清除重置</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="slbl">即時票數</div>
+    <div class="sg">
+      <div class="si"><div class="sn r" id="sR">0</div><div class="sl">🔴 紅</div></div>
+      <div class="si"><div class="sn y" id="sY">0</div><div class="sl">🟡 黃</div></div>
+      <div class="si"><div class="sn g" id="sG">0</div><div class="sl">🟢 綠</div></div>
+    </div>
+    <div class="rate-box"><div class="rb-num" id="sRate">—</div><div class="rb-sub">市場率</div></div>
+    <div class="voted-ct">已投票：<span id="sTot">0</span> 人　</div>
+  </div>
+
+  <div class="sec">
+    <div class="slbl">倒數計時</div>
+    <div class="td" id="tDisp">20</div>
+    <div class="tpre">
+      <button class="tp" onclick="setT(15)">15s</button>
+      <button class="tp" onclick="setT(20)">20s</button>
+      <button class="tp" onclick="setT(30)">30s</button>
+      <button class="tp" onclick="setT(60)">60s</button>
+      <button class="tp" onclick="setT(90)">90s</button>
+      <button class="tp" onclick="setT(120)">2分</button>
+      <button class="tp" onclick="setT(180)">3分</button>
+      <button class="tp" onclick="setT(300)">5分</button>
+    </div>
+    <div class="tbtns">
+      <button class="tbtn tb-go" id="tGo" onclick="startT()">▶ 開始</button>
+      <button class="tbtn tb-pa" onclick="pauseT()">暫停</button>
+      <button class="tbtn tb-rs" onclick="resetT()">重置</button>
+    </div>
+    <input class="tqin" id="tQ" placeholder="倒數說明文字">
+  </div>
+
+  <div class="sec">
+    <div class="slbl">投影幕切換</div>
+    <div class="dg">
+      <button class="dbtn" onclick="disp('standby')">待機</button>
+      <button class="dbtn" onclick="disp('timer')">倒數</button>
+      <button class="dbtn" onclick="disp('vpre')">前測結果</button>
+      <button class="dbtn" onclick="disp('vpost')">後測結果</button>
+      <button class="dbtn" onclick="disp('compare')">前後對比</button>
+      <button class="dbtn" onclick="disp('scoreboard')">分數榜</button>
+      <button class="dbtn" onclick="disp('unlock')">解鎖資源</button>
+      <button class="dbtn" onclick="disp('black')">黑屏</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="slbl">解鎖資源公布</div>
+    <select class="sel" id="ulShop">
+      <option>靜日香研</option><option>胖昇</option><option>新協泰米行</option>
+      <option>九尖茶廠</option><option>波嶼</option><option>紙布家</option>
+      <option>嘉禮慕華</option><option>馨眠</option><option>樸樂咖啡</option><option>安餃子</option>
+    </select>
+    <select class="sel" id="ulRes">
+      <option value="📱 限動曝光資格">📱 限動曝光資格</option>
+      <option value="📣 社群貼文曝光資格">📣 社群貼文曝光資格</option>
+      <option value="🎬 影廳精華預告資格">🎬 影廳精華預告資格</option>
+      <option value="📺 影廳廣告資格">📺 影廳廣告資格</option>
+      <option value="🤝 實習生協作資格">🤝 實習生協作資格</option>
+      <option value="🎟 票根導流資格">🎟 票根導流資格</option>
+      <option value="🏆 小店生存王資源包">🏆 小店生存王資源包</option>
+    </select>
+    <button class="cb" onclick="disp('unlock')">→ 公布解鎖</button>
+  </div>
+
+  <div class="sec">
+    <div class="slbl">店家分數</div>
+    <div id="shopList"></div>
+    <button class="cb" onclick="disp('scoreboard')" style="margin-top:5px;">→ 顯示分數榜</button>
+  </div>
+
+</div>
+
+<!-- SEAT MAP -->
+<div class="map-area">
+  <div class="map-hd">
+    <div class="map-title">南投戲院 A廳｜即時投票反應圖　<span style="font-size:9px;color:#2a2a2a;">（點座位可手動調整顏色）</span></div>
+    <div class="legend">
+      <div class="leg"><div class="ld" style="background:#1a1a1a;border:1px solid #333;"></div>未投</div>
+      <div class="leg"><div class="ld" style="background:var(--R);"></div>紅</div>
+      <div class="leg"><div class="ld" style="background:#7A5800;"></div>黃</div>
+      <div class="leg"><div class="ld" style="background:var(--G);"></div>綠</div>
+      <div class="leg"><div class="ld" style="background:#1e1e1e;border:1px solid #333;"></div>工作人員</div>
+    </div>
+  </div>
+  <div class="smap-wrap">
+    <div class="smap-grid" id="smap"></div>
+    <div class="screen-lbl">銀　　　幕</div>
+  </div>
+</div>
+
+<!-- Manual vote popup -->
+<div class="mvpop" id="mvpop">
+  <button class="mvbtn mv-r" onclick="manualVote('red')">🔴</button>
+  <button class="mvbtn mv-y" onclick="manualVote('yellow')">🟡</button>
+  <button class="mvbtn mv-g" onclick="manualVote('green')">🟢</button>
+  <button class="mvbtn mv-x" onclick="manualVote('clear')">✕</button>
+</div>
+
+</div>
+
+<script>
+const DB='https://suanlela-vote-default-rtdb.firebaseio.com';
+const SHOPS=['靜日香研','胖昇','新協泰米行','九尖茶廠','波嶼','紙布家','嘉禮慕華','馨眠','樸樂咖啡','安餃子'];
+
+// 精確對應座位圖的每排定義
+// null=空格, 'gap'=走道, {id,gray}=座位
+const ROWS={
+  8:[
+    {id:'08-01'},{id:'08-02'},{id:'08-03'},{id:'08-04'},
+    {id:'08-05'},{id:'08-06'},{id:'08-07'},{id:'08-08'},{id:'08-09'},
+    {id:'08-10',gray:true},
+    null,null,null,null,null,null,null,null,null,
+    {id:'08-11',gray:true},
+    {id:'08-12'},{id:'08-13'},{id:'08-14'},{id:'08-15'},{id:'08-16'},{id:'08-17'},
+    null,
+    {id:'08-18'},{id:'08-19'},{id:'08-20'}
+  ],
+  7:[
+    {id:'07-01'},{id:'07-02'},{id:'07-03'},
+    null,
+    {id:'07-04'},{id:'07-05'},{id:'07-06'},{id:'07-07'},{id:'07-08'},{id:'07-09'},
+    null,null,null,null,null,null,null,null,null,
+    {id:'07-10'},{id:'07-11'},{id:'07-12'},{id:'07-13'},{id:'07-14'},{id:'07-15'},
+    null,
+    {id:'07-16'},{id:'07-17'},{id:'07-18'},
+    null
+  ],
+  6:[
+    {id:'06-00a',gray:true},{id:'06-00b',gray:true},{id:'06-00c',gray:true},
+    null,
+    {id:'06-01'},{id:'06-02'},{id:'06-03'},{id:'06-04'},{id:'06-05'},{id:'06-06'},
+    null,null,null,null,null,null,null,null,null,
+    {id:'06-07'},{id:'06-08'},{id:'06-09'},{id:'06-10'},{id:'06-11'},{id:'06-12'},
+    null,
+    {id:'06-13'},
+    null,null,null
+  ],
+  5:[
+    null,null,null,null,
+    {id:'05-01'},{id:'05-02'},{id:'05-03'},{id:'05-04'},{id:'05-05'},{id:'05-06'},
+    'gap',
+    {id:'05-07'},{id:'05-08'},{id:'05-09'},{id:'05-10'},{id:'05-11'},{id:'05-12'},{id:'05-13'},
+    'gap',
+    {id:'05-14'},{id:'05-15'},{id:'05-16'},{id:'05-17'},{id:'05-18'},{id:'05-19'},
+    null,null,null,null,null
+  ],
+  4:[
+    null,null,null,null,
+    {id:'04-01'},{id:'04-02'},{id:'04-03'},{id:'04-04'},{id:'04-05'},{id:'04-06'},
+    'gap',
+    {id:'04-07'},{id:'04-08'},{id:'04-09'},{id:'04-10'},{id:'04-11'},{id:'04-12'},{id:'04-13'},
+    'gap',
+    {id:'04-14'},{id:'04-15'},{id:'04-16'},{id:'04-17'},{id:'04-18'},{id:'04-19'},
+    null,null,null,null,null
+  ],
+  3:[
+    null,null,null,null,
+    {id:'03-01'},{id:'03-02'},{id:'03-03'},{id:'03-04'},{id:'03-05'},{id:'03-06'},
+    'gap',
+    {id:'03-07'},{id:'03-08'},{id:'03-09'},{id:'03-10'},{id:'03-11'},{id:'03-12'},{id:'03-13'},
+    'gap',
+    {id:'03-14'},{id:'03-15'},{id:'03-16'},{id:'03-17'},{id:'03-18'},{id:'03-19'},
+    null,null,null,null,null
+  ],
+  2:[
+    null,null,null,null,
+    {id:'02-01'},{id:'02-02'},{id:'02-03'},{id:'02-04'},{id:'02-05'},{id:'02-06'},
+    'gap',
+    {id:'02-07'},{id:'02-08'},{id:'02-09'},{id:'02-10'},{id:'02-11'},{id:'02-12'},{id:'02-13'},
+    'gap',
+    {id:'02-14'},{id:'02-15'},{id:'02-16'},{id:'02-17'},{id:'02-18'},{id:'02-19'},
+    null,null,null,null,null
+  ],
+  1:[
+    null,null,null,null,
+    {id:'01-01'},{id:'01-02'},{id:'01-03'},{id:'01-04'},{id:'01-05'},{id:'01-06'},
+    'gap',
+    {id:'01-07'},{id:'01-08'},{id:'01-09'},{id:'01-10'},{id:'01-11'},{id:'01-12'},{id:'01-13'},
+    'gap',
+    {id:'01-14'},{id:'01-15'},{id:'01-16'},{id:'01-17'},{id:'01-18'},{id:'01-19'},
+    null,null,null,null,null
+  ],
+};
+
+let curEP=1,curPh='pre',roundId=null,votes={},pollT=null;
+let tSec=20,tTotal=20,tRun=false,tIv=null;
+let shopScores={};SHOPS.forEach(s=>shopScores[s]=[0,0,0,0]);
+let mvTarget=null;
+
+// ── SEAT DATA (grid-column based) ──
+const SEAT_DATA = {
+  8: {
+    normal:[[1,'08-01'],[2,'08-02'],[3,'08-03'],[4,'08-04'],[5,'08-05'],[6,'08-06'],[7,'08-07'],[8,'08-08'],[9,'08-09'],[21,'08-12'],[22,'08-13'],[23,'08-14'],[24,'08-15'],[25,'08-16'],[26,'08-17'],[28,'08-18'],[29,'08-19'],[30,'08-20']],
+    gray:[[10,'08-10'],[20,'08-11']]
+  },
+  7: {
+    normal:[[1,'07-01'],[2,'07-02'],[3,'07-03'],[5,'07-04'],[6,'07-05'],[7,'07-06'],[8,'07-07'],[9,'07-08'],[10,'07-09'],[20,'07-10'],[21,'07-11'],[22,'07-12'],[23,'07-13'],[24,'07-14'],[25,'07-15'],[27,'07-16'],[28,'07-17'],[29,'07-18']],
+    gray:[]
+  },
+  6: {
+    normal:[[5,'06-01'],[6,'06-02'],[7,'06-03'],[8,'06-04'],[9,'06-05'],[10,'06-06'],[20,'06-07'],[21,'06-08'],[22,'06-09'],[23,'06-10'],[24,'06-11'],[25,'06-12'],[27,'06-13']],
+    gray:[[1,'06-00a'],[2,'06-00b'],[3,'06-00c']]
+  },
+  5: {
+    normal:[[5,'05-01'],[6,'05-02'],[7,'05-03'],[8,'05-04'],[9,'05-05'],[10,'05-06'],[12,'05-07'],[13,'05-08'],[14,'05-09'],[15,'05-10'],[16,'05-11'],[17,'05-12'],[18,'05-13'],[20,'05-14'],[21,'05-15'],[22,'05-16'],[23,'05-17'],[24,'05-18'],[25,'05-19']],
+    gray:[]
+  },
+  4: {
+    normal:[[5,'04-01'],[6,'04-02'],[7,'04-03'],[8,'04-04'],[9,'04-05'],[10,'04-06'],[12,'04-07'],[13,'04-08'],[14,'04-09'],[15,'04-10'],[16,'04-11'],[17,'04-12'],[18,'04-13'],[20,'04-14'],[21,'04-15'],[22,'04-16'],[23,'04-17'],[24,'04-18'],[25,'04-19']],
+    gray:[]
+  },
+  3: {
+    normal:[[5,'03-01'],[6,'03-02'],[7,'03-03'],[8,'03-04'],[9,'03-05'],[10,'03-06'],[12,'03-07'],[13,'03-08'],[14,'03-09'],[15,'03-10'],[16,'03-11'],[17,'03-12'],[18,'03-13'],[20,'03-14'],[21,'03-15'],[22,'03-16'],[23,'03-17'],[24,'03-18'],[25,'03-19']],
+    gray:[]
+  },
+  2: {
+    normal:[[5,'02-01'],[6,'02-02'],[7,'02-03'],[8,'02-04'],[9,'02-05'],[10,'02-06'],[12,'02-07'],[13,'02-08'],[14,'02-09'],[15,'02-10'],[16,'02-11'],[17,'02-12'],[18,'02-13'],[20,'02-14'],[21,'02-15'],[22,'02-16'],[23,'02-17'],[24,'02-18'],[25,'02-19']],
+    gray:[]
+  },
+  1: {
+    normal:[[5,'01-01'],[6,'01-02'],[7,'01-03'],[8,'01-04'],[9,'01-05'],[10,'01-06'],[12,'01-07'],[13,'01-08'],[14,'01-09'],[15,'01-10'],[16,'01-11'],[17,'01-12'],[18,'01-13'],[20,'01-14'],[21,'01-15'],[22,'01-16'],[23,'01-17'],[24,'01-18'],[25,'01-19']],
+    gray:[]
+  },
+};
+
+// ── BUILD MAP ──
+function buildMap(){
+  const wrap=document.getElementById('smap');
+  wrap.innerHTML='';
+  // 排號標籤列
+  const lblRow=document.createElement('div');
+  lblRow.style.cssText='display:grid;grid-template-columns:repeat(30,32px);gap:2px;margin-bottom:1px;';
+  for(let c=1;c<=30;c++){
+    const lbl=document.createElement('div');
+    lbl.style.cssText='width:32px;text-align:center;font-size:7px;color:#2a2a2a;';
+    if([1,5,10,11,12,15,18,19,20,25,27,30].includes(c)) lbl.textContent=c;
+    lblRow.appendChild(lbl);
+  }
+  wrap.appendChild(lblRow);
+
+  for(let r=8;r>=1;r--){
+    const rowWrap=document.createElement('div');
+    rowWrap.style.cssText='display:flex;align-items:center;gap:4px;margin-bottom:2px;';
+    const rnum=document.createElement('div');
+    rnum.className='rnum';rnum.textContent=r;
+    rowWrap.appendChild(rnum);
+
+    const grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(30,32px);gap:2px;';
+
+    const data=SEAT_DATA[r];
+    // 建立col→seat對應
+    const colMap={};
+    data.normal.forEach(([col,id])=>colMap[col]={id,gray:false});
+    data.gray.forEach(([col,id])=>colMap[col]={id,gray:true});
+
+    for(let c=1;c<=30;c++){
+      const cell=colMap[c];
+      const el=document.createElement('div');
+      if(cell){
+        el.className='seat '+(cell.gray?'gray':'idle');
+        el.id='sc_'+cell.id.replace(/-/g,'_');
+        el.title=cell.id;
+        el.textContent=cell.id.split('-')[1];
+        if(!cell.gray) el.onclick=e=>openMV(cell.id,e);
+      } else {
+        el.className='seat gap-ph';
+      }
+      grid.appendChild(el);
+    }
+    rowWrap.appendChild(grid);
+    wrap.appendChild(rowWrap);
+  }
+}
+
+// ── MANUAL VOTE ──
+function openMV(sid,e){
+  mvTarget=sid;
+  const pop=document.getElementById('mvpop');
+  pop.classList.add('on');
+  pop.style.left=(e.pageX-10)+'px';
+  pop.style.top=(e.pageY-50)+'px';
+}
+function manualVote(color){
+  if(!mvTarget) return;
+  const key=mvTarget.replace(/-/g,'_');
+  const el=document.getElementById('sc_'+key);
+  if(el){
+    el.className='seat'+(color==='clear'?' idle':' voted-'+color);
+  }
+  if(color!=='clear'&&roundId){
+    fetch(`${DB}/votes/${roundId}/${key}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({color,seat:mvTarget,ts:Date.now(),manual:true})});
+  } else if(color==='clear'&&roundId){
+    fetch(`${DB}/votes/${roundId}/${key}.json`,{method:'DELETE'});
+  }
+  document.getElementById('mvpop').classList.remove('on');
+  mvTarget=null;
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#mvpop')&&!e.target.classList.contains('seat')) document.getElementById('mvpop').classList.remove('on');
+});
+
+// ── REFRESH MAP ──
+function refreshMap(){
+  document.querySelectorAll('.seat.idle,.seat.voted-red,.seat.voted-yellow,.seat.voted-green').forEach(el=>{
+    el.className='seat idle';
+  });
+  Object.entries(votes).forEach(([key,data])=>{
+    const el=document.getElementById('sc_'+key);
+    if(el) el.className='seat voted-'+data.color;
+  });
+}
+
+// ── STATS ──
+function updStats(){
+  let r=0,y=0,g=0;
+  Object.values(votes).forEach(v=>{if(v.color==='red')r++;else if(v.color==='yellow')y++;else if(v.color==='green')g++;});
+  const tot=r+y+g;
+  document.getElementById('sR').textContent=r;
+  document.getElementById('sY').textContent=y;
+  document.getElementById('sG').textContent=g;
+  document.getElementById('sTot').textContent=tot;
+  const rate=tot>0?Math.round((y+g*2)/(tot*2)*1000)/10:null;
+  document.getElementById('sRate').textContent=rate!==null?rate+'%':'—';
+  // Push to display via localStorage
+  try{localStorage.setItem('vd',JSON.stringify({r,y,g,tot,rate,ep:curEP,ph:curPh,ts:Date.now()}));}catch(e){}
+}
+
+// ── POLL ──
+async function poll(){
+  if(!roundId) return;
+  try{
+    const res=await fetch(`${DB}/votes/${roundId}.json`);
+    const d=await res.json();
+    votes=d||{};
+    refreshMap();updStats();
+  }catch(e){}
+}
+
+// ── EP/PHASE ──
+function selEP(ep){
+  curEP=ep;[1,2,3,4].forEach(i=>document.getElementById('ep'+i+'t').classList.toggle('on',i===ep));
+  buildShopList();
+  try{localStorage.setItem('displayEP',String(ep));}catch(e){}
+}
+function selPh(ph){
+  curPh=ph;
+  document.getElementById('phPre').classList.toggle('on',ph==='pre');
+  document.getElementById('phPost').classList.toggle('on',ph==='post');
+  try{localStorage.setItem('displayPh',ph);}catch(e){}
+}
+
+// ── ROUND ──
+async function startRound(){
+  roundId='ep'+curEP+'_'+curPh+'_'+Date.now();
+  votes={};refreshMap();updStats();
+  try{
+    await fetch(`${DB}/round.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:true,id:roundId,ep:'ep'+curEP,phase:curPh,startedAt:Date.now()})});
+    setStatus(true);
+    if(!pollT) pollT=setInterval(poll,1800);
+  }catch(e){alert('啟動失敗，請檢查 Firebase URL');}
+}
+async function stopRound(){
+  try{await fetch(`${DB}/round.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:false,id:roundId})});}catch(e){}
+  setStatus(false,'已結束');
+}
+async function resetRound(){
+  if(!confirm('確定清除所有票數並重置？'))return;
+  votes={};roundId=null;refreshMap();updStats();
+  try{await fetch(`${DB}/round.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:false})});}catch(e){}
+  setStatus(false,'已重置');
+}
+function setStatus(live,msg){
+  const el=document.getElementById('rdSt');
+  if(live){el.className='rs rs-live';el.textContent='EP'+curEP+' '+(curPh==='pre'?'前測':'後測')+' 進行中 ●';document.getElementById('topInfo').textContent='投票中';}
+  else{el.className='rs rs-idle';el.textContent=msg||'尚未開始';document.getElementById('topInfo').textContent=msg||'待機';}
+}
+
+// ── TIMER ──
+function setT(s){pauseT();tSec=tTotal=s;updT();}
+function startT(){
+  if(tRun)return;tRun=true;document.getElementById('tGo').textContent='進行中…';
+  disp('timer');
+  tIv=setInterval(()=>{if(tSec<=0){clearInterval(tIv);tRun=false;document.getElementById('tGo').textContent='▶ 開始';return;}tSec--;updT();syncT();},1000);
+}
+function pauseT(){clearInterval(tIv);tRun=false;document.getElementById('tGo').textContent='▶ 開始';}
+function resetT(){pauseT();tSec=tTotal;updT();}
+function updT(){
+  const m=Math.floor(tSec/60),s=tSec%60;
+  const str=m>0?m+':'+(s<10?'0':'')+s:String(s);
+  const pct=tTotal>0?tSec/tTotal:1,cls=pct<=.2?'d':pct<=.4?'w':'';
+  document.getElementById('tDisp').textContent=str;
+  document.getElementById('tDisp').className='td'+(cls?' '+cls:'');
+}
+function syncT(){
+  const m=Math.floor(tSec/60),s=tSec%60;
+  const str=m>0?m+':'+(s<10?'0':'')+s:String(s);
+  const pct=tTotal>0?tSec/tTotal:1;
+  const q=document.getElementById('tQ').value;
+  try{localStorage.setItem('timer',JSON.stringify({str,pct,q,ts:Date.now()}));}catch(e){}
+}
+
+// ── DISPLAY ──
+function disp(screen){
+  try{localStorage.setItem('displayScreen',screen);localStorage.setItem('displayEP',String(curEP));localStorage.setItem('displayPh',curPh);const shop=document.getElementById('ulShop').value;const res=document.getElementById('ulRes').value;const sc=shopScores[shop]||[0,0,0,0];const tot=sc.reduce((a,b)=>a+(+b||0),0);localStorage.setItem('unlockInfo',JSON.stringify({shop,res,tot}));localStorage.setItem('shopScores',JSON.stringify(shopScores));}catch(e){}
+}
+
+// ── SHOP SCORES ──
+function buildShopList(){
+  const wrap=document.getElementById('shopList');wrap.innerHTML='';
+  SHOPS.forEach(s=>{
+    const row=document.createElement('div');row.className='shr';
+    const nm=document.createElement('div');nm.className='shnm';nm.textContent=s;
+    const inp=document.createElement('input');inp.className='shin';inp.type='number';inp.min='0';inp.max='130';inp.value=shopScores[s][curEP-1]||0;
+    const tot=document.createElement('div');tot.className='shtot';tot.textContent=shopScores[s].reduce((a,b)=>a+(+b||0),0)||0;
+    inp.oninput=()=>{shopScores[s][curEP-1]=parseInt(inp.value)||0;tot.textContent=shopScores[s].reduce((a,b)=>a+(+b||0),0)||0;try{localStorage.setItem('shopScores',JSON.stringify(shopScores));}catch(e){}};
+    row.appendChild(nm);row.appendChild(inp);row.appendChild(tot);wrap.appendChild(row);
+  });
+}
+
+buildMap();buildShopList();
+pollT=setInterval(poll,1800);
+</script>
+</body>
+</html>
