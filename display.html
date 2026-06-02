@@ -188,50 +188,109 @@ function renderUnlock(shop,res,tot){
   document.getElementById('ul-ico').textContent=ico;document.getElementById('ul-shop').textContent=shop;document.getElementById('ul-res').textContent=res;document.getElementById('ul-sc').textContent='累積生存值 '+tot+' 點';
 }
 
+function applyTimer(t){
+  if(!t||Date.now()-t.ts>4000) return;
+  const pct=t.pct,cls=pct<=.2?'d':pct<=.4?'w':'';
+  document.getElementById('tm-big').textContent=t.str;
+  document.getElementById('tm-big').className='tm-big'+(cls?' '+cls:'');
+  if(t.q)document.getElementById('tm-q').textContent=t.q;
+  const bar=document.getElementById('tm-bar');
+  bar.style.width=(pct*100)+'%';
+  bar.className='tm-bar'+(cls?' '+cls:'');
+}
+let fbTimer=null;
+async function syncTimerFirebase(){
+  try{
+    const res=await fetch(`${DB}/display/timer.json`);
+    const raw=await res.json();
+    if(raw) fbTimer=JSON.parse(raw);
+  }catch(e){}
+}
 function syncTimer(){
-  try{const t=JSON.parse(localStorage.getItem('timer')||'null');if(!t||Date.now()-t.ts>3000)return;const pct=t.pct,cls=pct<=.2?'d':pct<=.4?'w':'';document.getElementById('tm-big').textContent=t.str;document.getElementById('tm-big').className='tm-big'+(cls?' '+cls:'');if(t.q)document.getElementById('tm-q').textContent=t.q;const bar=document.getElementById('tm-bar');bar.style.width=(pct*100)+'%';bar.className='tm-bar'+(cls?' '+cls:'');}catch(e){}
+  // 優先用 Firebase timer（跨電腦），備用 localStorage
+  const t=fbTimer||JSON.parse(localStorage.getItem('timer')||'null');
+  applyTimer(t);
 }
 
-function poll(){
-  syncTimer();
+const DB='https://suanlela-vote-default-rtdb.firebaseio.com';
+let lastDispTs=0;
+
+async function pollFirebase(){
   try{
-    const sc=localStorage.getItem('displayScreen');
-    const ep=parseInt(localStorage.getItem('displayEP'))||1;
-    const ph=localStorage.getItem('displayPh')||'pre';
-    const vdRaw=localStorage.getItem('vd');
-    const scoresRaw=localStorage.getItem('shopScores');
-    const ulRaw=localStorage.getItem('unlockInfo');
-    const curShop=localStorage.getItem('curShop')||'';
-    const cmpShop=localStorage.getItem('compareShop')||'';
-    const cmpDataRaw=localStorage.getItem('compareData');
+    const res=await fetch(`${DB}/display.json`);
+    const d=await res.json();
+    if(!d||d.ts<=lastDispTs) return;
+    lastDispTs=d.ts;
+    applyDisplay(d);
+  }catch(e){}
+}
+
+function applyDisplay(d){
+  try{
+    const sc=d.displayScreen;
+    const ep=parseInt(d.displayEP)||1;
+    const curShop=d.curShop||'';
+    const cmpShop=d.compareShop||'';
 
     if(sc) show(sc);
 
     document.getElementById('sb-ep').textContent=EP_LABELS[ep-1];
-    // 顯示當前店家名稱
-    const preTitle=curShop?EP_VT[ep-1]+'｜前測　'+curShop:EP_VT[ep-1]+'｜前測';
-    const postTitle=curShop?EP_VT[ep-1]+'｜後測　'+curShop:EP_VT[ep-1]+'｜後測';
+    const preTitle=curShop?EP_VT[ep-1]+'｜前測　　'+curShop:EP_VT[ep-1]+'｜前測';
+    const postTitle=curShop?EP_VT[ep-1]+'｜後測　　'+curShop:EP_VT[ep-1]+'｜後測';
     document.getElementById('vt-pre-t').textContent=preTitle;
     document.getElementById('vt-post-t').textContent=postTitle;
     document.getElementById('vt-pre-s').textContent=EP_VS[ep-1];
 
+    const vdRaw=d.vd||localStorage.getItem('vd');
     if(vdRaw){
       const vd=JSON.parse(vdRaw);
       if(vd.ph==='pre'){preRate=vd.rate;renderVote(true,vd.r,vd.y,vd.g,vd.rate);}
       else{postRate=vd.rate;renderVote(false,vd.r,vd.y,vd.g,vd.rate);}
     }
-    // compare 用獨立資料
-    if(sc==='compare'&&cmpDataRaw){
-      const cmpData=JSON.parse(cmpDataRaw);
-      document.getElementById('cm-shop').textContent=cmpShop+' 前後對比';
+
+    if(sc==='compare'&&d.compareData){
+      const cmpData=JSON.parse(d.compareData);
+      document.getElementById('cm-shop').textContent=(cmpShop||'')+'　前後對比';
       renderCompare(cmpData.pre,cmpData.post);
     }
-    if(scoresRaw&&sc==='scoreboard') renderSb(JSON.parse(scoresRaw),ep);
-    if(ulRaw&&sc==='unlock'){const u=JSON.parse(ulRaw);renderUnlock(u.shop,u.res,u.tot);}
+
+    if(sc==='scoreboard'&&d.shopScores){
+      renderSb(JSON.parse(d.shopScores),ep);
+    }
+
+    if(sc==='unlock'&&d.unlockInfo){
+      const u=JSON.parse(d.unlockInfo);renderUnlock(u.shop,u.res,u.tot);
+    }
   }catch(e){}
 }
 
-setInterval(poll,600);poll();
+function pollLocal(){
+  try{
+    const sc=localStorage.getItem('displayScreen');
+    if(!sc) return;
+    applyDisplay({
+      displayScreen:sc,
+      displayEP:localStorage.getItem('displayEP')||'1',
+      displayPh:localStorage.getItem('displayPh')||'pre',
+      curShop:localStorage.getItem('curShop')||'',
+      shopScores:localStorage.getItem('shopScores'),
+      unlockInfo:localStorage.getItem('unlockInfo'),
+      compareShop:localStorage.getItem('compareShop')||'',
+      compareData:localStorage.getItem('compareData'),
+      vd:localStorage.getItem('vd'),
+    });
+  }catch(e){}
+}
+
+function poll(){
+  syncTimer();
+  pollLocal();
+}
+
+setInterval(poll,500);
+setInterval(pollFirebase,1500);
+setInterval(syncTimerFirebase,1000);
+poll();pollFirebase();syncTimerFirebase();
 </script>
 </body>
 </html>

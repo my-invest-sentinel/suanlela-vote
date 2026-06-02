@@ -491,9 +491,14 @@ function updStats(){
   document.getElementById('sG').textContent=g;
   document.getElementById('sTot').textContent=tot;
   document.getElementById('sRate').textContent=rate!==null?rate+'%':'—';
-  // push to display
+  // push to display (localStorage + Firebase)
   const shop=document.getElementById('curShopSel').value;
-  try{localStorage.setItem('vd',JSON.stringify({r,y,g,tot,rate,ep:curEP,ph:curPh,shop,ts:Date.now()}));}catch(e){}
+  const vdData={r,y,g,tot,rate,ep:curEP,ph:curPh,shop,ts:Date.now()};
+  try{localStorage.setItem('vd',JSON.stringify(vdData));}catch(e){}
+  // 同步到 Firebase 讓另一台電腦的 display.html 也能即時更新票數
+  try{
+    fetch(`${DB}/display/vd.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(vdData))});
+  }catch(e){}
 }
 
 // ── STORE RESULTS TABLE ──
@@ -621,35 +626,52 @@ function syncT(){
   const str=m>0?m+':'+(s<10?'0':'')+s:String(s);
   const pct=tTotal>0?tSec/tTotal:1;
   const q=document.getElementById('tQ').value;
-  try{localStorage.setItem('timer',JSON.stringify({str,pct,q,ts:Date.now()}));}catch(e){}
+  const tData={str,pct,q,ts:Date.now()};
+  try{localStorage.setItem('timer',JSON.stringify(tData));}catch(e){}
+  try{fetch(`${DB}/display/timer.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(tData))});}catch(e){}
 }
 
-// ── DISPLAY ──
-function disp(screen){
-  const shop=document.getElementById('curShopSel').value;
+// ── DISPLAY ── 同時寫 localStorage 和 Firebase
+async function pushDisplay(data){
+  // localStorage (同台電腦用)
   try{
-    localStorage.setItem('displayScreen',screen);
-    localStorage.setItem('displayEP',String(curEP));
-    localStorage.setItem('displayPh',curPh);
-    localStorage.setItem('curShop',shop);
-    localStorage.setItem('shopScores',JSON.stringify(shopScores));
-    const ul={shop:document.getElementById('ulShop').value,res:document.getElementById('ulRes').value};
-    const sc=shopScores[ul.shop]||[0,0,0,0];
-    ul.tot=sc.reduce((a,b)=>a+(+b||0),0);
-    localStorage.setItem('unlockInfo',JSON.stringify(ul));
+    Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,typeof v==='object'?JSON.stringify(v):String(v)));
+  }catch(e){}
+  // Firebase (跨電腦用)
+  try{
+    await fetch(`${DB}/display.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,ts:Date.now()})});
   }catch(e){}
 }
+
+function disp(screen){
+  const shop=document.getElementById('curShopSel').value;
+  const ul={shop:document.getElementById('ulShop').value,res:document.getElementById('ulRes').value};
+  const sc=shopScores[ul.shop]||[0,0,0,0];
+  ul.tot=sc.reduce((a,b)=>a+(+b||0),0);
+  pushDisplay({
+    displayScreen:screen,
+    displayEP:String(curEP),
+    displayPh:curPh,
+    curShop:shop,
+    shopScores:JSON.stringify(shopScores),
+    unlockInfo:JSON.stringify(ul),
+    storeResults:JSON.stringify(storeResults),
+  });
+}
+
 function dispCompare(){
   const shop=document.getElementById('cmpShopSel').value||document.getElementById('curShopSel').value;
   if(!shop){alert('請選擇要對比的店家');return;}
   const res=storeResults[shop]||{pre:null,post:null};
-  try{
-    localStorage.setItem('compareShop',shop);
-    localStorage.setItem('compareData',JSON.stringify(res));
-    localStorage.setItem('displayScreen','compare');
-    localStorage.setItem('displayEP',String(curEP));
-  }catch(e){}
+  pushDisplay({
+    displayScreen:'compare',
+    displayEP:String(curEP),
+    compareShop:shop,
+    compareData:JSON.stringify(res),
+    storeResults:JSON.stringify(storeResults),
+  });
 }
+
 function dispUnlock(){
   disp('unlock');
 }
