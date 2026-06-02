@@ -268,31 +268,30 @@ function applyDisplay(d){
   }catch(e){console.log('applyDisplay error:',e);}
 }
 
-function pollLocal(){
-  try{
-    const sc=localStorage.getItem('displayScreen');
-    if(!sc) return;
-    applyDisplay({
-      displayScreen:sc,
-      displayEP:localStorage.getItem('displayEP')||'1',
-      displayPh:localStorage.getItem('displayPh')||'pre',
-      curShop:localStorage.getItem('curShop')||'',
-      shopScores:localStorage.getItem('shopScores'),
-      unlockInfo:localStorage.getItem('unlockInfo'),
-      compareShop:localStorage.getItem('compareShop')||'',
-      compareData:localStorage.getItem('compareData'),
-      vd:localStorage.getItem('vd'),
-    });
-  }catch(e){}
-}
-
 function poll(){
   syncTimer();
-  pollLocal();
+  // 只在 Firebase 尚未收到資料時才用 localStorage（同台電腦備用）
+  if(lastDispTs===0){
+    try{
+      const sc=localStorage.getItem('displayScreen');
+      if(!sc) return;
+      applyDisplay({
+        displayScreen:sc,
+        displayEP:localStorage.getItem('displayEP')||'1',
+        displayPh:localStorage.getItem('displayPh')||'pre',
+        curShop:localStorage.getItem('curShop')||'',
+        shopScores:localStorage.getItem('shopScores'),
+        unlockInfo:localStorage.getItem('unlockInfo'),
+        compareShop:localStorage.getItem('compareShop')||'',
+        compareData:localStorage.getItem('compareData'),
+        vd:localStorage.getItem('vd'),
+      });
+    }catch(e){}
+  }
 }
 
 setInterval(poll,500);
-setInterval(pollFirebase,1500);
+setInterval(pollFirebase,1000);
 setInterval(syncTimerFirebase,1000);
 poll();pollFirebase();syncTimerFirebase();
 </script>
