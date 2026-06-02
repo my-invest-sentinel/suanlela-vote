@@ -227,10 +227,11 @@ async function pollFirebase(){
 
 function applyDisplay(d){
   try{
-    const sc=d.displayScreen;
-    const ep=parseInt(d.displayEP)||1;
-    const curShop=d.curShop||'';
-    const cmpShop=d.compareShop||'';
+    // 相容新格式（Firebase）和舊格式（localStorage）
+    const sc=d.screen||d.displayScreen;
+    const ep=parseInt(d.ep||d.displayEP)||1;
+    const curShop=d.shop||d.curShop||'';
+    const cmpShop=d.cmpShop||d.compareShop||'';
 
     if(sc) show(sc);
 
@@ -248,20 +249,23 @@ function applyDisplay(d){
       else{postRate=vd.rate;renderVote(false,vd.r,vd.y,vd.g,vd.rate);}
     }
 
-    if(sc==='compare'&&d.compareData){
-      const cmpData=JSON.parse(d.compareData);
+    const cmpRaw=d.cmpData||d.compareData;
+    if(sc==='compare'&&cmpRaw){
+      const cmpData=JSON.parse(cmpRaw);
       document.getElementById('cm-shop').textContent=(cmpShop||'')+'　前後對比';
       renderCompare(cmpData.pre,cmpData.post);
     }
 
-    if(sc==='scoreboard'&&d.shopScores){
-      renderSb(JSON.parse(d.shopScores),ep);
+    const scoresRaw=d.scores||d.shopScores;
+    if(sc==='scoreboard'&&scoresRaw){
+      renderSb(JSON.parse(scoresRaw),ep);
     }
 
-    if(sc==='unlock'&&d.unlockInfo){
-      const u=JSON.parse(d.unlockInfo);renderUnlock(u.shop,u.res,u.tot);
+    const ulRaw=d.unlock||d.unlockInfo;
+    if(sc==='unlock'&&ulRaw){
+      const u=JSON.parse(ulRaw);renderUnlock(u.shop,u.res,u.tot);
     }
-  }catch(e){}
+  }catch(e){console.log('applyDisplay error:',e);}
 }
 
 function pollLocal(){

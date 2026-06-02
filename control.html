@@ -637,10 +637,25 @@ async function pushDisplay(data){
   try{
     Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,typeof v==='object'?JSON.stringify(v):String(v)));
   }catch(e){}
-  // Firebase (跨電腦用)
+  // Firebase (跨電腦用) - 存成字串避免巢狀問題
   try{
-    await fetch(`${DB}/display.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,ts:Date.now()})});
-  }catch(e){}
+    const payload={
+      screen: data.displayScreen||'standby',
+      ep: data.displayEP||'1',
+      ph: data.displayPh||'pre',
+      shop: data.curShop||'',
+      cmpShop: data.compareShop||'',
+      cmpData: data.compareData||'',
+      scores: data.shopScores||'',
+      unlock: data.unlockInfo||'',
+      ts: Date.now()
+    };
+    await fetch(`${DB}/display.json`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+  }catch(e){console.log('Firebase push error:',e);}
 }
 
 function disp(screen){
