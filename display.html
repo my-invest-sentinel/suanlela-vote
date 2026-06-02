@@ -161,10 +161,12 @@ function renderVote(pre,r,y,g,rate){
   }
 }
 
-function renderCompare(){
-  document.getElementById('cm-pre').textContent=preRate!==null?preRate+'%':'—';
-  document.getElementById('cm-post').textContent=postRate!==null?postRate+'%':'—';
-  if(preRate!==null&&postRate!==null){
+function renderCompare(pre,post){
+  const pr=pre!==undefined?pre:preRate;
+  const po=post!==undefined?post:postRate;
+  document.getElementById('cm-pre').textContent=pr!==null?pr+'%':'—';
+  document.getElementById('cm-post').textContent=po!==null?po+'%':'—';
+  if(pr!==null&&po!==null){
     const diff=Math.round((postRate-preRate)*10)/10;
     document.getElementById('cm-diff').textContent=diff>=0?'提升 '+diff+' 個百分點':'退步 '+Math.abs(diff)+' 個百分點';
     const ps=diff>=40?70:diff>=30?60:diff>=20?50:diff>=10?35:diff>=1?20:0;
@@ -199,20 +201,30 @@ function poll(){
     const vdRaw=localStorage.getItem('vd');
     const scoresRaw=localStorage.getItem('shopScores');
     const ulRaw=localStorage.getItem('unlockInfo');
+    const curShop=localStorage.getItem('curShop')||'';
+    const cmpShop=localStorage.getItem('compareShop')||'';
+    const cmpDataRaw=localStorage.getItem('compareData');
 
     if(sc) show(sc);
 
     document.getElementById('sb-ep').textContent=EP_LABELS[ep-1];
-    document.getElementById('vt-pre-t').textContent=EP_VT[ep-1]+'｜前測';
-    document.getElementById('vt-post-t').textContent=EP_VT[ep-1]+'｜後測';
+    // 顯示當前店家名稱
+    const preTitle=curShop?EP_VT[ep-1]+'｜前測　'+curShop:EP_VT[ep-1]+'｜前測';
+    const postTitle=curShop?EP_VT[ep-1]+'｜後測　'+curShop:EP_VT[ep-1]+'｜後測';
+    document.getElementById('vt-pre-t').textContent=preTitle;
+    document.getElementById('vt-post-t').textContent=postTitle;
     document.getElementById('vt-pre-s').textContent=EP_VS[ep-1];
-    document.getElementById('cm-shop').textContent=EP_LABELS[ep-1]+'　前後對比';
 
     if(vdRaw){
       const vd=JSON.parse(vdRaw);
       if(vd.ph==='pre'){preRate=vd.rate;renderVote(true,vd.r,vd.y,vd.g,vd.rate);}
       else{postRate=vd.rate;renderVote(false,vd.r,vd.y,vd.g,vd.rate);}
-      if(sc==='compare') renderCompare();
+    }
+    // compare 用獨立資料
+    if(sc==='compare'&&cmpDataRaw){
+      const cmpData=JSON.parse(cmpDataRaw);
+      document.getElementById('cm-shop').textContent=cmpShop+' 前後對比';
+      renderCompare(cmpData.pre,cmpData.post);
     }
     if(scoresRaw&&sc==='scoreboard') renderSb(JSON.parse(scoresRaw),ep);
     if(ulRaw&&sc==='unlock'){const u=JSON.parse(ulRaw);renderUnlock(u.shop,u.res,u.tot);}
