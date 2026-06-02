@@ -2,84 +2,53 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>Firebase 測試</title>
+<title>Firebase 測試 v2</title>
 <style>
 body{font-family:sans-serif;padding:30px;background:#111;color:#eee;}
 button{padding:12px 24px;margin:8px;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:700;}
 .btn-write{background:#1A6B35;color:#fff;}
 .btn-read{background:#1A3A5C;color:#fff;}
+.btn-watch{background:#7A3A00;color:#fff;}
 .btn-clear{background:#333;color:#aaa;}
-pre{background:#1a1a1a;padding:16px;border-radius:8px;margin-top:12px;white-space:pre-wrap;word-break:break-all;font-size:12px;max-height:300px;overflow:auto;}
+pre{background:#1a1a1a;padding:16px;border-radius:8px;margin-top:12px;white-space:pre-wrap;word-break:break-all;font-size:12px;max-height:400px;overflow:auto;}
 .ok{color:#27AE60;font-weight:700;}
 .err{color:#E74C3C;font-weight:700;}
+.info{color:#7AB8F5;}
 </style>
 </head>
 <body>
-<h2>Firebase 連線測試</h2>
-<p style="color:#888;font-size:13px;">用這個頁面確認 Firebase 讀寫是否正常</p>
-
+<h2>Firebase 即時監看</h2>
 <div>
-  <button class="btn-write" onclick="testWrite()">① 寫入測試資料</button>
-  <button class="btn-read" onclick="testRead()">② 讀取資料</button>
-  <button class="btn-clear" onclick="clearLog()">清除記錄</button>
+  <button class="btn-read" onclick="readDisplay()">讀取 /display 現在的值</button>
+  <button class="btn-watch" onclick="startWatch()">每秒自動監看</button>
+  <button class="btn-clear" onclick="clearLog()">清除</button>
 </div>
-
-<pre id="log">點按鈕開始測試...</pre>
+<pre id="log">點按鈕開始...</pre>
 
 <script>
 const DB='https://suanlela-vote-default-rtdb.firebaseio.com';
+let watchT=null;
 
-function log(msg, ok){
+function log(msg,cls=''){
   const el=document.getElementById('log');
-  const cls=ok===true?'ok':ok===false?'err':'';
-  el.innerHTML+=`<span class="${cls}">${new Date().toLocaleTimeString()} ${msg}</span>\n`;
-  el.scrollTop=el.scrollHeight;
+  el.innerHTML=`<span class="${cls}">${new Date().toLocaleTimeString()} ${msg}</span>\n`+el.innerHTML;
 }
 
-async function testWrite(){
-  log('嘗試寫入 /display.json ...');
-  try{
-    const payload={
-      screen:'black',
-      ep:'1',
-      ph:'pre',
-      shop:'測試店家',
-      ts:Date.now()
-    };
-    const res=await fetch(`${DB}/display.json`,{
-      method:'PUT',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
-    const data=await res.json();
-    if(res.ok){
-      log('✅ 寫入成功！回傳：'+JSON.stringify(data), true);
-    } else {
-      log('❌ 寫入失敗，HTTP '+res.status+': '+JSON.stringify(data), false);
-    }
-  }catch(e){
-    log('❌ 網路錯誤：'+e.message, false);
-  }
-}
-
-async function testRead(){
-  log('嘗試讀取 /display.json ...');
+async function readDisplay(){
   try{
     const res=await fetch(`${DB}/display.json`);
-    const data=await res.json();
-    if(res.ok){
-      log('✅ 讀取成功！資料：'+JSON.stringify(data), true);
-    } else {
-      log('❌ 讀取失敗，HTTP '+res.status, false);
-    }
-  }catch(e){
-    log('❌ 網路錯誤：'+e.message, false);
-  }
+    const d=await res.json();
+    log('Firebase /display 的值：\n'+JSON.stringify(d,null,2),'info');
+  }catch(e){log('錯誤：'+e.message,'err');}
 }
 
-function clearLog(){
-  document.getElementById('log').textContent='';
+function startWatch(){
+  if(watchT){clearInterval(watchT);watchT=null;log('停止監看');return;}
+  log('開始每秒監看...');
+  watchT=setInterval(readDisplay,1000);
 }
+
+function clearLog(){document.getElementById('log').textContent='';}
 </script>
 </body>
 </html>
