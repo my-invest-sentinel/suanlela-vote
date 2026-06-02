@@ -128,6 +128,22 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
   </div>
   <div class="wm">NANTOU THEATER</div>
 </div>
+
+<!-- 籌碼結果 -->
+<div class="screen" id="sc-token">
+  <div class="vt-t">EP2｜市場籌碼結果</div>
+  <div class="vt-s">誰獲得最多消費意願？</div>
+  <div id="token-bars" style="width:72vw;max-width:680px;display:flex;flex-direction:column;gap:10px;margin-top:16px;"></div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+
+<!-- 五角色結果 -->
+<div class="screen" id="sc-role">
+  <div class="vt-t" id="role-title">EP4｜商品角色判定</div>
+  <div class="vt-s" id="role-sub">觀眾認為這個商品的角色是？</div>
+  <div id="role-bars" style="width:72vw;max-width:680px;display:flex;flex-direction:column;gap:10px;margin-top:16px;"></div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
 <div class="screen" id="sc-unlock">
   <div class="ul-ico" id="ul-ico">🎉</div>
   <div class="ul-shop" id="ul-shop">店家</div>
@@ -182,6 +198,60 @@ function renderSb(scores,ep){
   SHOPS.forEach(s=>{const sc=scores[s]||[0,0,0,0];const tot=sc.reduce((a,b)=>a+(+b||0),0);const dr=document.createElement('div');dr.className='sbd-dr';dr.innerHTML=`<div class="sbd-nm">${s}</div>${sc.map(v=>`<div class="sbd-n">${v||'—'}</div>`).join('')}<div class="sbd-tot">${tot||'—'}</div>`;wrap.appendChild(dr);});
 }
 
+function renderToken(votes){
+  const counts={};
+  Object.values(votes||{}).forEach(v=>{
+    if(v.choice) counts[v.choice]=(counts[v.choice]||0)+1;
+  });
+  const total=Object.values(counts).reduce((a,b)=>a+b,0)||1;
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const wrap=document.getElementById('token-bars');
+  wrap.innerHTML='';
+  sorted.forEach(([shop,cnt],i)=>{
+    const pct=Math.round(cnt/total*100);
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:14px;';
+    row.innerHTML=`
+      <div style="width:140px;text-align:right;font-size:clamp(12px,1.8vw,20px);font-weight:600;color:#EAE7E0;flex-shrink:0;">${shop}</div>
+      <div style="flex:1;height:44px;background:#111;border-radius:7px;overflow:hidden;">
+        <div style="height:100%;border-radius:7px;width:${Math.max(pct>0?5:0,pct)}%;background:${i===0?'linear-gradient(90deg,#7A5800,#E2A800)':'linear-gradient(90deg,#1a1a1a,#333)'};display:flex;align-items:center;padding-left:12px;font-size:clamp(13px,1.8vw,22px);font-weight:800;color:${i===0?'#000':'#666'};transition:width .9s;">
+          ${cnt}
+        </div>
+      </div>
+      <div style="font-size:clamp(13px,1.6vw,20px);font-weight:700;color:#555;min-width:48px;text-align:right;">${pct}%</div>
+    `;
+    wrap.appendChild(row);
+  });
+}
+
+function renderRole(votes,shopName){
+  const ROLES=['引流品','主力品','加購品','回購品','形象品'];
+  const ICONS={'引流品':'🎯','主力品':'💰','加購品':'➕','回購品':'🔄','形象品':'✨'};
+  const counts={};
+  ROLES.forEach(r=>counts[r]=0);
+  Object.values(votes||{}).forEach(v=>{if(v.choice&&counts[v.choice]!==undefined)counts[v.choice]++;});
+  const total=Object.values(counts).reduce((a,b)=>a+b,0)||1;
+  if(shopName) document.getElementById('role-title').textContent='EP4｜'+shopName+'　商品角色判定';
+  const wrap=document.getElementById('role-bars');
+  wrap.innerHTML='';
+  ROLES.forEach(r=>{
+    const cnt=counts[r]||0;
+    const pct=Math.round(cnt/total*100);
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:14px;';
+    row.innerHTML=`
+      <div style="width:110px;text-align:right;font-size:clamp(12px,1.8vw,20px);font-weight:600;color:#EAE7E0;flex-shrink:0;">${ICONS[r]} ${r}</div>
+      <div style="flex:1;height:40px;background:#111;border-radius:7px;overflow:hidden;">
+        <div style="height:100%;border-radius:7px;width:${Math.max(pct>0?5:0,pct)}%;background:linear-gradient(90deg,#1A3A5C,#3498DB);display:flex;align-items:center;padding-left:12px;font-size:clamp(13px,1.8vw,20px);font-weight:800;color:#fff;transition:width .9s;">
+          ${cnt}
+        </div>
+      </div>
+      <div style="font-size:clamp(13px,1.6vw,20px);font-weight:700;color:#555;min-width:48px;text-align:right;">${pct}%</div>
+    `;
+    wrap.appendChild(row);
+  });
+}
+
 function renderUnlock(shop,res,tot){
   const im={'限動':'📱','社群貼文':'📣','影廳精':'🎬','影廳廣':'📺','實習':'🤝','票根':'🎟','小店生':'🏆'};
   let ico='🎉';for(const[k,v] of Object.entries(im)){if(res.includes(k)){ico=v;break;}}
@@ -217,11 +287,19 @@ let lastDispTs=0;
 
 async function pollFirebase(){
   try{
+    // 讀取整個 /display 節點（包含 tokenRound、roleRound 等子節點）
     const res=await fetch(`${DB}/display.json`);
     const d=await res.json();
-    if(!d||d.ts<=lastDispTs) return;
-    lastDispTs=d.ts;
-    applyDisplay(d);
+    if(!d) return;
+    // 主畫面指令只在 ts 更新時觸發
+    if(d.ts&&d.ts>lastDispTs){
+      lastDispTs=d.ts;
+      applyDisplay(d);
+    }
+    // tokenRound 和 roleRound 獨立存取（不受 ts 限制）
+    if(d.tokenRound) window._tokenRound=d.tokenRound;
+    if(d.roleRound) window._roleRound=d.roleRound;
+    if(d.roleShop) window._roleShop=d.roleShop;
   }catch(e){}
 }
 
@@ -264,6 +342,18 @@ function applyDisplay(d){
     const ulRaw=d.unlock||d.unlockInfo;
     if(sc==='unlock'&&ulRaw){
       const u=JSON.parse(ulRaw);renderUnlock(u.shop,u.res,u.tot);
+    }
+
+    // 籌碼結果
+    if(sc==='token'){
+      const tr=d.tokenRound||window._tokenRound;
+      if(tr) fetch(`${DB}/votes/${tr}.json`).then(r=>r.json()).then(v=>renderToken(v)).catch(()=>{});
+    }
+    // 五角色結果
+    if(sc==='role'){
+      const rr=d.roleRound||window._roleRound;
+      const rs=d.roleShop||window._roleShop||'';
+      if(rr) fetch(`${DB}/votes/${rr}.json`).then(r=>r.json()).then(v=>renderRole(v,rs)).catch(()=>{});
     }
   }catch(e){console.log('applyDisplay error:',e);}
 }

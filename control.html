@@ -172,6 +172,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
       <button class="rbtn rb-stop" onclick="stopRound()">⏹ 結束本輪投票</button>
       <button class="rbtn rb-reset" onclick="resetRound()">↺ 清除重置</button>
     </div>
+    <div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+      <button class="rbtn" style="background:#1A3A5C;color:#7AB8F5;font-size:10px;" onclick="startToken()">🪙 EP2 籌碼投票</button>
+      <button class="rbtn" style="background:#2A1A4A;color:#CC88FF;font-size:10px;" onclick="startRole()">🏷 EP4 五角色</button>
+    </div>
   </div>
 
   <!-- 即時票數 -->
@@ -232,6 +236,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
       <button class="dbtn" onclick="disp('vpost')">後測結果</button>
       <button class="dbtn" onclick="dispCompare()">前後對比</button>
       <button class="dbtn" onclick="disp('scoreboard')">分數榜</button>
+      <button class="dbtn" onclick="disp('token')">籌碼結果</button>
+      <button class="dbtn" onclick="disp('role')">五角色結果</button>
       <button class="dbtn" onclick="dispUnlock()">解鎖資源</button>
       <button class="dbtn" onclick="disp('black')">黑屏</button>
     </div>
@@ -558,6 +564,35 @@ function selPh(ph){
 }
 
 // ── ROUND ──
+// EP2 籌碼投票
+async function startToken(){
+  const shop=document.getElementById('curShopSel').value;
+  if(!curEP===2&&!confirm('籌碼投票通常在EP2使用，確定要開始？'))return;
+  roundId='ep2_token_'+Date.now();
+  votes={};refreshMap();updStats();
+  const shops=['靜日香研','胖昇','新協泰米行','九尖茶廠','波嶼','紙布家','嘉禮慕華','馨眠','樸樂咖啡','安餃子'];
+  try{
+    await fetch(`${DB}/round.json`,{method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({active:true,id:roundId,ep:'ep2',phase:'token',shops,startedAt:Date.now()})});
+    setStatus(true,'EP2 籌碼投票');
+    if(!pollT)pollT=setInterval(poll,1800);
+  }catch(e){alert('啟動失敗');}
+}
+
+// EP4 五角色投票
+async function startRole(){
+  const shop=document.getElementById('curShopSel').value;
+  if(!shop){alert('請先選擇目前測試的店家！');return;}
+  roundId='ep4_role_'+shop.replace(/[^a-z0-9]/gi,'')+'_'+Date.now();
+  votes={};refreshMap();updStats();
+  try{
+    await fetch(`${DB}/round.json`,{method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({active:true,id:roundId,ep:'ep4',phase:'role',shop,startedAt:Date.now()})});
+    setStatus(true,'EP4 五角色 · '+shop);
+    if(!pollT)pollT=setInterval(poll,1800);
+  }catch(e){alert('啟動失敗');}
+}
+
 async function startRound(){
   const shop=document.getElementById('curShopSel').value;
   if(!shop){alert('請先選擇目前測試的店家！');return;}
@@ -571,18 +606,32 @@ async function startRound(){
   }catch(e){alert('啟動失敗，請檢查網路');}
 }
 async function stopRound(){
-  // 儲存這輪結果
   const shop=document.getElementById('curShopSel').value;
-  if(shop){
+  // 判斷是否為特殊模式
+  const isToken=roundId&&roundId.startsWith('ep2_token');
+  const isRole=roundId&&roundId.startsWith('ep4_role');
+
+  if(!isToken&&!isRole&&shop){
     const {rate}=calcRate(votes);
     if(rate!==null){
       if(curPh==='pre') storeResults[shop].pre=rate;
       else storeResults[shop].post=rate;
       updateStoreResultRows();
-      // push compare data
       try{localStorage.setItem('storeResults',JSON.stringify(storeResults));}catch(e){}
     }
   }
+
+  // 記錄特殊輪次 ID 供 display 使用
+  if(isToken){
+    try{await fetch(`${DB}/display/tokenRound.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(roundId)});}catch(e){}
+  }
+  if(isRole){
+    try{
+      await fetch(`${DB}/display/roleRound.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(roundId)});
+      await fetch(`${DB}/display/roleShop.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(shop)});
+    }catch(e){}
+  }
+
   try{await fetch(`${DB}/round.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:false,id:roundId})});}catch(e){}
   setStatus(false,'已結束');
 }
