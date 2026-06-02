@@ -8,7 +8,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--R:#C0392B;--Y:#B7860B;--G:#1A6B35;--Rl:#E74C3C;--Yl:#E2A800;--Gl:#27AE60;--bg:#080808;--panel:#0F0F0F;--card:#161616;--bdr:#202020;--txt:#EAE7E0;}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:'Helvetica Neue',Arial,sans-serif;}
-.top{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--bdr);flex-shrink:0;gap:8px;}
+.top{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--bdr);flex-shrink:0;gap:8px;}
 .tp-title{font-size:12px;font-weight:700;white-space:nowrap;}
 .ep-row,.ph-row{display:flex;gap:3px;}
 .ep-btn,.ph-btn{padding:4px 10px;border-radius:4px;border:1px solid var(--bdr);background:transparent;color:#555;font-size:10px;cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap;}
@@ -17,72 +17,97 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 .live{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--Gl);}
 .pulse{width:6px;height:6px;border-radius:50%;background:var(--Gl);animation:blink 1.4s infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.body{display:flex;height:calc(100vh - 40px);}
-.left{width:240px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--bdr);overflow-y:auto;padding:7px;display:flex;flex-direction:column;gap:6px;}
+.body{display:flex;height:calc(100vh - 42px);}
+
+/* LEFT */
+.left{width:250px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--bdr);overflow-y:auto;padding:7px;display:flex;flex-direction:column;gap:6px;}
 .sec{background:var(--card);border-radius:6px;padding:8px 10px;}
 .slbl{font-size:9px;color:#3a3a3a;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+
+/* Shop selector */
+.shop-sel-row{display:flex;gap:4px;align-items:center;margin-bottom:6px;}
+.shop-sel{flex:1;padding:6px 8px;background:#1a1a1a;border:1px solid var(--bdr);border-radius:5px;color:var(--txt);font-size:11px;font-family:inherit;outline:none;}
+.shop-sel:focus{border-color:#555;}
+.current-shop{padding:7px 10px;border-radius:5px;font-size:11px;font-weight:700;text-align:center;background:rgba(26,107,53,.15);border:1px solid rgba(39,174,96,.3);color:var(--Gl);}
+
 /* Round */
-.rs{padding:6px 9px;border-radius:5px;font-size:10px;text-align:center;font-weight:600;}
+.rs{padding:6px 9px;border-radius:5px;font-size:10px;text-align:center;font-weight:600;margin-bottom:5px;}
 .rs-idle{background:#1a1a1a;border:1px solid var(--bdr);color:#3a3a3a;}
 .rs-live{background:rgba(26,107,53,.15);border:1px solid rgba(39,174,96,.3);color:var(--Gl);}
-.rbtns{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+.rbtns{display:flex;flex-direction:column;gap:4px;}
 .rbtn{padding:9px;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
 .rb-go{background:var(--G);color:#fff;}
 .rb-stop{background:#222;color:#777;}
 .rb-reset{background:#2A1040;color:#CC88FF;}
+
 /* Stats */
 .sg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;}
 .si{background:#1a1a1a;border-radius:5px;padding:7px 4px;text-align:center;}
-.sn{font-size:26px;font-weight:800;line-height:1;}
-.sn.r{color:var(--Rl);}
-.sn.y{color:var(--Yl);}
-.sn.g{color:var(--Gl);}
+.sn{font-size:24px;font-weight:800;line-height:1;}
+.sn.r{color:var(--Rl);}.sn.y{color:var(--Yl);}.sn.g{color:var(--Gl);}
 .sl{font-size:9px;color:#3a3a3a;margin-top:2px;}
-.rate-box{background:#1a1a1a;border-radius:5px;padding:8px;text-align:center;margin-top:4px;}
-.rb-num{font-size:28px;font-weight:800;color:var(--Yl);line-height:1;}
+.rate-box{background:#1a1a1a;border-radius:5px;padding:7px;text-align:center;margin-top:4px;}
+.rb-num{font-size:26px;font-weight:800;color:var(--Yl);line-height:1;}
 .rb-sub{font-size:9px;color:#3a3a3a;margin-top:2px;}
 .voted-ct{font-size:9px;color:#3a3a3a;text-align:center;margin-top:4px;}
+
+/* Store results table */
+.store-results{margin-top:4px;}
+.sr-row{display:flex;align-items:center;gap:5px;padding:3px 0;border-bottom:1px solid #1a1a1a;font-size:10px;}
+.sr-row:last-child{border:none;}
+.sr-name{flex:1;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sr-pre{min-width:38px;text-align:center;color:#555;}
+.sr-post{min-width:38px;text-align:center;color:#555;}
+.sr-diff{min-width:38px;text-align:center;font-weight:700;}
+.sr-diff.up{color:var(--Gl);}
+.sr-diff.down{color:var(--Rl);}
+.sr-hd{color:#3a3a3a !important;font-size:8px;}
+
+/* Timer */
+.td{font-size:42px;font-weight:800;text-align:center;line-height:1;padding:3px 0;}
+.td.w{color:var(--Yl);}.td.d{color:var(--Rl);animation:dp .5s infinite alternate;}
+@keyframes dp{from{opacity:1}to{opacity:.3}}
+.tpre{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:4px;}
+.tp{padding:4px 0;border-radius:3px;border:1px solid var(--bdr);background:#1a1a1a;color:#666;font-size:10px;cursor:pointer;text-align:center;font-family:inherit;}
+.tbtns{display:grid;grid-template-columns:2fr 1fr 1fr;gap:3px;}
+.tbtn{padding:7px;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;}
+.tb-go{background:var(--G);color:#fff;}.tb-pa{background:var(--Y);color:#000;}.tb-rs{background:#2a2a2a;color:#888;}
+.tqin{width:100%;padding:4px 6px;background:#1a1a1a;border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-size:10px;font-family:inherit;outline:none;margin-top:4px;}
+
 /* Display */
 .dg{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
 .dbtn{padding:7px 3px;border-radius:5px;border:1px solid var(--bdr);background:#1a1a1a;color:#555;font-size:10px;cursor:pointer;text-align:center;font-family:inherit;line-height:1.3;transition:all .12s;}
 .dbtn:hover{background:#222;color:#ccc;}
-.dbtn.on{background:#1A3A5C;border-color:#1A3A5C;color:#7AB8F5;}
+
+/* Compare selector */
+.cmp-sel-row{display:flex;gap:4px;margin-bottom:4px;}
+.cmp-sel{flex:1;padding:5px 7px;background:#1a1a1a;border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-size:10px;font-family:inherit;outline:none;}
+
 /* Unlock */
 .sel{width:100%;padding:5px 7px;background:#1a1a1a;border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-size:10px;font-family:inherit;outline:none;margin-bottom:4px;}
 .cb{width:100%;padding:7px;background:var(--Y);color:#0C0C0C;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:2px;}
+
 /* Shop scores */
 .shr{display:flex;align-items:center;gap:4px;padding:4px 0;border-bottom:1px solid #1a1a1a;}
 .shr:last-child{border:none;}
 .shnm{flex:1;font-size:10px;color:#777;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .shin{width:44px;padding:2px 4px;background:#1a1a1a;border:1px solid var(--bdr);border-radius:3px;color:#fff;font-size:11px;text-align:center;font-family:inherit;outline:none;}
 .shtot{font-size:11px;font-weight:700;color:var(--Yl);min-width:26px;text-align:right;}
-/* Timer */
-.td{font-size:44px;font-weight:800;text-align:center;line-height:1;padding:3px 0;}
-.td.w{color:var(--Yl);}
-.td.d{color:var(--Rl);animation:dp .5s infinite alternate;}
-@keyframes dp{from{opacity:1}to{opacity:.3}}
-.tpre{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:4px;}
-.tp{padding:4px 0;border-radius:3px;border:1px solid var(--bdr);background:#1a1a1a;color:#666;font-size:10px;cursor:pointer;text-align:center;font-family:inherit;}
-.tbtns{display:grid;grid-template-columns:2fr 1fr 1fr;gap:3px;}
-.tbtn{padding:7px;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;}
-.tb-go{background:var(--G);color:#fff;}
-.tb-pa{background:var(--Y);color:#000;}
-.tb-rs{background:#2a2a2a;color:#888;}
-.tqin{width:100%;padding:4px 6px;background:#1a1a1a;border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-size:10px;font-family:inherit;outline:none;margin-top:4px;}
+
 /* SEAT MAP */
 .map-area{flex:1;overflow:auto;padding:12px;background:var(--bg);}
-.map-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.map-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
 .map-title{font-size:11px;color:#3a3a3a;}
-.legend{display:flex;gap:10px;}
+.legend{display:flex;gap:10px;flex-wrap:wrap;}
 .leg{display:flex;align-items:center;gap:4px;font-size:9px;color:#3a3a3a;}
 .ld{width:9px;height:9px;border-radius:2px;}
-.smap-wrap{background:var(--panel);border-radius:9px;padding:14px 12px 10px;}
-.smap{display:flex;flex-direction:column;gap:3px;}
-.s-row{display:flex;align-items:center;}
-.rnum{font-size:8px;color:#2a2a2a;width:20px;text-align:right;padding-right:4px;flex-shrink:0;}
-.seat{width:32px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:600;cursor:pointer;margin:0 1px;transition:background .3s,box-shadow .25s;border:1px solid transparent;user-select:none;}
-.seat.empty{background:transparent;border:none;pointer-events:none;}
-.seat.gap{background:transparent;border:none;pointer-events:none;width:8px;}
+.smap-wrap{background:var(--panel);border-radius:9px;padding:14px 12px 10px;overflow-x:auto;}
+.smap{display:flex;flex-direction:column;gap:2px;min-width:max-content;}
+.s-row{display:flex;align-items:center;gap:0;}
+.rnum{font-size:8px;color:#2a2a2a;width:20px;text-align:right;padding-right:5px;flex-shrink:0;}
+.seat{width:30px;height:22px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:600;cursor:pointer;transition:background .3s,box-shadow .25s;border:1px solid transparent;user-select:none;flex-shrink:0;}
+.seat-ph{width:30px;height:22px;flex-shrink:0;} /* placeholder空位 */
+.seat-gap{width:10px;height:22px;flex-shrink:0;} /* 走道 */
 .seat.gray{background:#1e1e1e;color:#333;border-color:#252525;cursor:default;}
 .seat.idle{background:#1a1a1a;color:#2a2a2a;border-color:#222;}
 .seat.voted-red{background:var(--R);color:#fff;box-shadow:0 0 7px rgba(192,57,43,.55);border-color:var(--Rl);}
@@ -90,14 +115,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 .seat.voted-green{background:var(--G);color:#A8E6C0;box-shadow:0 0 7px rgba(26,107,53,.55);border-color:var(--Gl);}
 .seat.idle:hover{background:#252525;border-color:#333;}
 .screen-lbl{text-align:center;background:#111;border:1px solid #1a1a1a;border-radius:5px;padding:6px;font-size:9px;color:#2a2a2a;letter-spacing:.15em;margin-top:8px;}
+.col-lbl-row{display:flex;align-items:center;margin-bottom:2px;}
+.col-lbl-offset{width:20px;padding-right:5px;flex-shrink:0;}
+.col-lbl{width:30px;text-align:center;font-size:7px;color:#2a2a2a;flex-shrink:0;}
+.col-lbl-ph{width:30px;flex-shrink:0;}
+.col-lbl-gap{width:10px;flex-shrink:0;}
+
 /* Manual vote popup */
 .mvpop{display:none;position:fixed;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:10px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.6);}
 .mvpop.on{display:flex;gap:5px;}
 .mvbtn{padding:8px 12px;border:none;border-radius:5px;font-size:13px;cursor:pointer;}
-.mv-r{background:var(--R);color:#fff;}
-.mv-y{background:var(--Y);color:#FFD54F;}
-.mv-g{background:var(--G);color:#A8E6C0;}
-.mv-x{background:#333;color:#999;}
+.mv-r{background:var(--R);color:#fff;}.mv-y{background:var(--Y);color:#FFD54F;}.mv-g{background:var(--G);color:#A8E6C0;}.mv-x{background:#333;color:#999;}
 </style>
 </head>
 <body>
@@ -121,6 +149,21 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 <div class="body">
 <div class="left">
 
+  <!-- 當前測試店家 -->
+  <div class="sec">
+    <div class="slbl">目前測試對象</div>
+    <div class="shop-sel-row">
+      <select class="shop-sel" id="curShopSel">
+        <option value="">— 選擇店家 —</option>
+        <option>靜日香研</option><option>胖昇</option><option>新協泰米行</option>
+        <option>九尖茶廠</option><option>波嶼</option><option>紙布家</option>
+        <option>嘉禮慕華</option><option>馨眠</option><option>樸樂咖啡</option><option>安餃子</option>
+      </select>
+    </div>
+    <div class="current-shop" id="curShopDisp">尚未選擇</div>
+  </div>
+
+  <!-- 投票輪次 -->
   <div class="sec">
     <div class="slbl">投票輪次</div>
     <div class="rs rs-idle" id="rdSt">尚未開始</div>
@@ -131,6 +174,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
     </div>
   </div>
 
+  <!-- 即時票數 -->
   <div class="sec">
     <div class="slbl">即時票數</div>
     <div class="sg">
@@ -139,9 +183,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
       <div class="si"><div class="sn g" id="sG">0</div><div class="sl">🟢 綠</div></div>
     </div>
     <div class="rate-box"><div class="rb-num" id="sRate">—</div><div class="rb-sub">市場率</div></div>
-    <div class="voted-ct">已投票：<span id="sTot">0</span> 人　</div>
+    <div class="voted-ct">已投票：<span id="sTot">0</span> 人</div>
   </div>
 
+  <!-- 本集各店家前後測結果 -->
+  <div class="sec">
+    <div class="slbl">本集各店家結果</div>
+    <div class="store-results">
+      <div class="sr-row sr-hd">
+        <div class="sr-name">店家</div>
+        <div class="sr-pre">前測</div>
+        <div class="sr-post">後測</div>
+        <div class="sr-diff">進步</div>
+      </div>
+      <div id="storeResultRows"></div>
+    </div>
+  </div>
+
+  <!-- 倒數計時 -->
   <div class="sec">
     <div class="slbl">倒數計時</div>
     <div class="td" id="tDisp">20</div>
@@ -163,6 +222,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
     <input class="tqin" id="tQ" placeholder="倒數說明文字">
   </div>
 
+  <!-- 投影幕切換 -->
   <div class="sec">
     <div class="slbl">投影幕切換</div>
     <div class="dg">
@@ -170,13 +230,27 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
       <button class="dbtn" onclick="disp('timer')">倒數</button>
       <button class="dbtn" onclick="disp('vpre')">前測結果</button>
       <button class="dbtn" onclick="disp('vpost')">後測結果</button>
-      <button class="dbtn" onclick="disp('compare')">前後對比</button>
+      <button class="dbtn" onclick="dispCompare()">前後對比</button>
       <button class="dbtn" onclick="disp('scoreboard')">分數榜</button>
-      <button class="dbtn" onclick="disp('unlock')">解鎖資源</button>
+      <button class="dbtn" onclick="dispUnlock()">解鎖資源</button>
       <button class="dbtn" onclick="disp('black')">黑屏</button>
+    </div>
+    <!-- 前後對比選店家 -->
+    <div style="margin-top:6px;">
+      <div style="font-size:9px;color:#444;margin-bottom:4px;">前後對比：選店家</div>
+      <div class="cmp-sel-row">
+        <select class="cmp-sel" id="cmpShopSel">
+          <option value="">— 選店家 —</option>
+          <option>靜日香研</option><option>胖昇</option><option>新協泰米行</option>
+          <option>九尖茶廠</option><option>波嶼</option><option>紙布家</option>
+          <option>嘉禮慕華</option><option>馨眠</option><option>樸樂咖啡</option><option>安餃子</option>
+        </select>
+        <button class="rbtn rb-stop" style="padding:5px 8px;font-size:10px;" onclick="dispCompare()">顯示</button>
+      </div>
     </div>
   </div>
 
+  <!-- 解鎖資源 -->
   <div class="sec">
     <div class="slbl">解鎖資源公布</div>
     <select class="sel" id="ulShop">
@@ -193,9 +267,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
       <option value="🎟 票根導流資格">🎟 票根導流資格</option>
       <option value="🏆 小店生存王資源包">🏆 小店生存王資源包</option>
     </select>
-    <button class="cb" onclick="disp('unlock')">→ 公布解鎖</button>
+    <button class="cb" onclick="dispUnlock()">→ 公布解鎖</button>
   </div>
 
+  <!-- 店家分數 -->
   <div class="sec">
     <div class="slbl">店家分數</div>
     <div id="shopList"></div>
@@ -207,7 +282,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 <!-- SEAT MAP -->
 <div class="map-area">
   <div class="map-hd">
-    <div class="map-title">南投戲院 A廳｜即時投票反應圖　<span style="font-size:9px;color:#2a2a2a;">（點座位可手動調整顏色）</span></div>
+    <div class="map-title">南投戲院 A廳｜即時投票反應　<span style="font-size:9px;color:#2a2a2a;">（點座位可手動調整顏色）</span></div>
     <div class="legend">
       <div class="leg"><div class="ld" style="background:#1a1a1a;border:1px solid #333;"></div>未投</div>
       <div class="leg"><div class="ld" style="background:var(--R);"></div>紅</div>
@@ -236,85 +311,75 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 const DB='https://suanlela-vote-default-rtdb.firebaseio.com';
 const SHOPS=['靜日香研','胖昇','新協泰米行','九尖茶廠','波嶼','紙布家','嘉禮慕華','馨眠','樸樂咖啡','安餃子'];
 
-// 精確對應座位圖的每排定義
-// null=空格, 'gap'=走道, {id,gray}=座位
-const ROWS={
-  8:[
-    {id:'08-01'},{id:'08-02'},{id:'08-03'},{id:'08-04'},
-    {id:'08-05'},{id:'08-06'},{id:'08-07'},{id:'08-08'},{id:'08-09'},
-    {id:'08-10',gray:true},
-    null,null,null,null,null,null,null,null,null,
-    {id:'08-11',gray:true},
-    {id:'08-12'},{id:'08-13'},{id:'08-14'},{id:'08-15'},{id:'08-16'},{id:'08-17'},
-    null,
-    {id:'08-18'},{id:'08-19'},{id:'08-20'}
-  ],
-  7:[
-    {id:'07-01'},{id:'07-02'},{id:'07-03'},
-    null,
-    {id:'07-04'},{id:'07-05'},{id:'07-06'},{id:'07-07'},{id:'07-08'},{id:'07-09'},
-    null,null,null,null,null,null,null,null,null,
-    {id:'07-10'},{id:'07-11'},{id:'07-12'},{id:'07-13'},{id:'07-14'},{id:'07-15'},
-    null,
-    {id:'07-16'},{id:'07-17'},{id:'07-18'},
-    null
-  ],
-  6:[
-    {id:'06-00a',gray:true},{id:'06-00b',gray:true},{id:'06-00c',gray:true},
-    null,
-    {id:'06-01'},{id:'06-02'},{id:'06-03'},{id:'06-04'},{id:'06-05'},{id:'06-06'},
-    null,null,null,null,null,null,null,null,null,
-    {id:'06-07'},{id:'06-08'},{id:'06-09'},{id:'06-10'},{id:'06-11'},{id:'06-12'},
-    null,
-    {id:'06-13'},
-    null,null,null
-  ],
-  5:[
-    null,null,null,null,
-    {id:'05-01'},{id:'05-02'},{id:'05-03'},{id:'05-04'},{id:'05-05'},{id:'05-06'},
-    'gap',
-    {id:'05-07'},{id:'05-08'},{id:'05-09'},{id:'05-10'},{id:'05-11'},{id:'05-12'},{id:'05-13'},
-    'gap',
-    {id:'05-14'},{id:'05-15'},{id:'05-16'},{id:'05-17'},{id:'05-18'},{id:'05-19'},
-    null,null,null,null,null
-  ],
-  4:[
-    null,null,null,null,
-    {id:'04-01'},{id:'04-02'},{id:'04-03'},{id:'04-04'},{id:'04-05'},{id:'04-06'},
-    'gap',
-    {id:'04-07'},{id:'04-08'},{id:'04-09'},{id:'04-10'},{id:'04-11'},{id:'04-12'},{id:'04-13'},
-    'gap',
-    {id:'04-14'},{id:'04-15'},{id:'04-16'},{id:'04-17'},{id:'04-18'},{id:'04-19'},
-    null,null,null,null,null
-  ],
-  3:[
-    null,null,null,null,
-    {id:'03-01'},{id:'03-02'},{id:'03-03'},{id:'03-04'},{id:'03-05'},{id:'03-06'},
-    'gap',
-    {id:'03-07'},{id:'03-08'},{id:'03-09'},{id:'03-10'},{id:'03-11'},{id:'03-12'},{id:'03-13'},
-    'gap',
-    {id:'03-14'},{id:'03-15'},{id:'03-16'},{id:'03-17'},{id:'03-18'},{id:'03-19'},
-    null,null,null,null,null
-  ],
-  2:[
-    null,null,null,null,
-    {id:'02-01'},{id:'02-02'},{id:'02-03'},{id:'02-04'},{id:'02-05'},{id:'02-06'},
-    'gap',
-    {id:'02-07'},{id:'02-08'},{id:'02-09'},{id:'02-10'},{id:'02-11'},{id:'02-12'},{id:'02-13'},
-    'gap',
-    {id:'02-14'},{id:'02-15'},{id:'02-16'},{id:'02-17'},{id:'02-18'},{id:'02-19'},
-    null,null,null,null,null
-  ],
-  1:[
-    null,null,null,null,
-    {id:'01-01'},{id:'01-02'},{id:'01-03'},{id:'01-04'},{id:'01-05'},{id:'01-06'},
-    'gap',
-    {id:'01-07'},{id:'01-08'},{id:'01-09'},{id:'01-10'},{id:'01-11'},{id:'01-12'},{id:'01-13'},
-    'gap',
-    {id:'01-14'},{id:'01-15'},{id:'01-16'},{id:'01-17'},{id:'01-18'},{id:'01-19'},
-    null,null,null,null,null
-  ],
+// 座位圖定義：每排用 {col, id, gray} 明確指定欄位
+const SEAT_DATA={
+  8:{
+    seats:[
+      {c:1,id:'08-01'},{c:2,id:'08-02'},{c:3,id:'08-03'},{c:4,id:'08-04'},
+      {c:5,id:'08-05'},{c:6,id:'08-06'},{c:7,id:'08-07'},{c:8,id:'08-08'},{c:9,id:'08-09'},
+      {c:10,id:'08-10',g:true},
+      {c:20,id:'08-11',g:true},
+      {c:21,id:'08-12'},{c:22,id:'08-13'},{c:23,id:'08-14'},
+      {c:24,id:'08-15'},{c:25,id:'08-16'},{c:26,id:'08-17'},
+      {c:28,id:'08-18'},{c:29,id:'08-19'},{c:30,id:'08-20'}
+    ]
+  },
+  7:{
+    seats:[
+      {c:1,id:'07-01'},{c:2,id:'07-02'},{c:3,id:'07-03'},
+      {c:5,id:'07-04'},{c:6,id:'07-05'},{c:7,id:'07-06'},{c:8,id:'07-07'},{c:9,id:'07-08'},{c:10,id:'07-09'},
+      {c:20,id:'07-10'},{c:21,id:'07-11'},{c:22,id:'07-12'},{c:23,id:'07-13'},{c:24,id:'07-14'},{c:25,id:'07-15'},
+      {c:27,id:'07-16'},{c:28,id:'07-17'},{c:29,id:'07-18'}
+    ]
+  },
+  6:{
+    seats:[
+      {c:1,id:'06-00a',g:true},{c:2,id:'06-00b',g:true},{c:3,id:'06-00c',g:true},
+      {c:5,id:'06-01'},{c:6,id:'06-02'},{c:7,id:'06-03'},{c:8,id:'06-04'},{c:9,id:'06-05'},{c:10,id:'06-06'},
+      {c:20,id:'06-07'},{c:21,id:'06-08'},{c:22,id:'06-09'},{c:23,id:'06-10'},{c:24,id:'06-11'},{c:25,id:'06-12'},
+      {c:27,id:'06-13'}
+    ]
+  },
+  5:{
+    seats:[
+      {c:5,id:'05-01'},{c:6,id:'05-02'},{c:7,id:'05-03'},{c:8,id:'05-04'},{c:9,id:'05-05'},{c:10,id:'05-06'},
+      {c:12,id:'05-07'},{c:13,id:'05-08'},{c:14,id:'05-09'},{c:15,id:'05-10'},{c:16,id:'05-11'},{c:17,id:'05-12'},{c:18,id:'05-13'},
+      {c:20,id:'05-14'},{c:21,id:'05-15'},{c:22,id:'05-16'},{c:23,id:'05-17'},{c:24,id:'05-18'},{c:25,id:'05-19'}
+    ]
+  },
+  4:{
+    seats:[
+      {c:5,id:'04-01'},{c:6,id:'04-02'},{c:7,id:'04-03'},{c:8,id:'04-04'},{c:9,id:'04-05'},{c:10,id:'04-06'},
+      {c:12,id:'04-07'},{c:13,id:'04-08'},{c:14,id:'04-09'},{c:15,id:'04-10'},{c:16,id:'04-11'},{c:17,id:'04-12'},{c:18,id:'04-13'},
+      {c:20,id:'04-14'},{c:21,id:'04-15'},{c:22,id:'04-16'},{c:23,id:'04-17'},{c:24,id:'04-18'},{c:25,id:'04-19'}
+    ]
+  },
+  3:{
+    seats:[
+      {c:5,id:'03-01'},{c:6,id:'03-02'},{c:7,id:'03-03'},{c:8,id:'03-04'},{c:9,id:'03-05'},{c:10,id:'03-06'},
+      {c:12,id:'03-07'},{c:13,id:'03-08'},{c:14,id:'03-09'},{c:15,id:'03-10'},{c:16,id:'03-11'},{c:17,id:'03-12'},{c:18,id:'03-13'},
+      {c:20,id:'03-14'},{c:21,id:'03-15'},{c:22,id:'03-16'},{c:23,id:'03-17'},{c:24,id:'03-18'},{c:25,id:'03-19'}
+    ]
+  },
+  2:{
+    seats:[
+      {c:5,id:'02-01'},{c:6,id:'02-02'},{c:7,id:'02-03'},{c:8,id:'02-04'},{c:9,id:'02-05'},{c:10,id:'02-06'},
+      {c:12,id:'02-07'},{c:13,id:'02-08'},{c:14,id:'02-09'},{c:15,id:'02-10'},{c:16,id:'02-11'},{c:17,id:'02-12'},{c:18,id:'02-13'},
+      {c:20,id:'02-14'},{c:21,id:'02-15'},{c:22,id:'02-16'},{c:23,id:'02-17'},{c:24,id:'02-18'},{c:25,id:'02-19'}
+    ]
+  },
+  1:{
+    seats:[
+      {c:5,id:'01-01'},{c:6,id:'01-02'},{c:7,id:'01-03'},{c:8,id:'01-04'},{c:9,id:'01-05'},{c:10,id:'01-06'},
+      {c:12,id:'01-07'},{c:13,id:'01-08'},{c:14,id:'01-09'},{c:15,id:'01-10'},{c:16,id:'01-11'},{c:17,id:'01-12'},{c:18,id:'01-13'},
+      {c:20,id:'01-14'},{c:21,id:'01-15'},{c:22,id:'01-16'},{c:23,id:'01-17'},{c:24,id:'01-18'},{c:25,id:'01-19'}
+    ]
+  }
 };
+
+// 存放各店家前後測結果 {shop: {pre: rate, post: rate}}
+let storeResults={};
+SHOPS.forEach(s=>storeResults[s]={pre:null,post:null});
 
 let curEP=1,curPh='pre',roundId=null,votes={},pollT=null;
 let tSec=20,tTotal=20,tRun=false,tIv=null;
@@ -325,24 +390,49 @@ let mvTarget=null;
 function buildMap(){
   const wrap=document.getElementById('smap');
   wrap.innerHTML='';
+
+  // 欄號標示列
+  const lblRow=document.createElement('div');
+  lblRow.className='col-lbl-row';
+  const offset=document.createElement('div');
+  offset.className='col-lbl-offset';
+  lblRow.appendChild(offset);
+  for(let c=1;c<=30;c++){
+    const lbl=document.createElement('div');
+    const showNums=[1,5,10,11,12,15,18,19,20,25,27,30];
+    lbl.className=showNums.includes(c)?'col-lbl':'col-lbl-ph';
+    if(showNums.includes(c)) lbl.textContent=c;
+    lblRow.appendChild(lbl);
+  }
+  wrap.appendChild(lblRow);
+
+  // 每排
   for(let r=8;r>=1;r--){
-    const row=document.createElement('div');row.className='s-row';
-    const lbl=document.createElement('div');lbl.className='rnum';lbl.textContent=r;
-    row.appendChild(lbl);
-    ROWS[r].forEach(cell=>{
+    const rowEl=document.createElement('div');
+    rowEl.className='s-row';
+    const rnum=document.createElement('div');
+    rnum.className='rnum';rnum.textContent=r;
+    rowEl.appendChild(rnum);
+
+    // 建立欄位對應
+    const colMap={};
+    SEAT_DATA[r].seats.forEach(s=>colMap[s.c]=s);
+
+    for(let c=1;c<=30;c++){
+      const seatDef=colMap[c];
       const el=document.createElement('div');
-      if(cell===null){el.className='seat empty';}
-      else if(cell==='gap'){el.className='seat gap';}
-      else{
-        el.className='seat '+(cell.gray?'gray':'idle');
-        el.id='sc_'+cell.id.replace(/-/g,'_');
-        el.title=cell.id;
-        el.textContent=cell.id.split('-')[1];
-        if(!cell.gray) el.onclick=e=>openMV(cell.id,e);
+      if(seatDef){
+        el.className='seat '+(seatDef.g?'gray':'idle');
+        el.id='sc_'+seatDef.id.replace(/-/g,'_');
+        el.title=seatDef.id;
+        el.textContent=seatDef.id.split('-')[1];
+        if(!seatDef.g) el.onclick=e=>openMV(seatDef.id,e);
+      } else {
+        el.className='seat-ph';
       }
-      row.appendChild(el);
-    });
-    wrap.appendChild(row);
+      rowEl.appendChild(el);
+    }
+    wrap.appendChild(rowEl);
   }
 }
 
@@ -352,10 +442,10 @@ function openMV(sid,e){
   const pop=document.getElementById('mvpop');
   pop.classList.add('on');
   pop.style.left=(e.pageX-10)+'px';
-  pop.style.top=(e.pageY-50)+'px';
+  pop.style.top=(e.pageY-55)+'px';
 }
 function manualVote(color){
-  if(!mvTarget) return;
+  if(!mvTarget)return;
   const key=mvTarget.replace(/-/g,'_');
   const el=document.getElementById('sc_'+key);
   if(el){
@@ -370,38 +460,70 @@ function manualVote(color){
   mvTarget=null;
 }
 document.addEventListener('click',e=>{
-  if(!e.target.closest('#mvpop')&&!e.target.classList.contains('seat')) document.getElementById('mvpop').classList.remove('on');
+  if(!e.target.closest('#mvpop')&&!e.target.classList.contains('seat'))
+    document.getElementById('mvpop').classList.remove('on');
 });
 
 // ── REFRESH MAP ──
 function refreshMap(){
-  document.querySelectorAll('.seat:not(.empty):not(.gap):not(.gray)').forEach(el=>{
-    el.className='seat idle';
+  document.querySelectorAll('.seat.idle,.seat.voted-red,.seat.voted-yellow,.seat.voted-green').forEach(el=>{
+    el.classList.remove('voted-red','voted-yellow','voted-green');
+    el.classList.add('idle');
   });
   Object.entries(votes).forEach(([key,data])=>{
     const el=document.getElementById('sc_'+key);
-    if(el) el.className='seat voted-'+data.color;
+    if(el){el.classList.remove('idle','voted-red','voted-yellow','voted-green');el.classList.add('voted-'+data.color);}
   });
 }
 
 // ── STATS ──
-function updStats(){
+function calcRate(vs){
   let r=0,y=0,g=0;
-  Object.values(votes).forEach(v=>{if(v.color==='red')r++;else if(v.color==='yellow')y++;else if(v.color==='green')g++;});
+  Object.values(vs).forEach(v=>{if(v.color==='red')r++;else if(v.color==='yellow')y++;else if(v.color==='green')g++;});
   const tot=r+y+g;
+  const rate=tot>0?Math.round((y+g*2)/(tot*2)*1000)/10:null;
+  return {r,y,g,tot,rate};
+}
+function updStats(){
+  const {r,y,g,tot,rate}=calcRate(votes);
   document.getElementById('sR').textContent=r;
   document.getElementById('sY').textContent=y;
   document.getElementById('sG').textContent=g;
   document.getElementById('sTot').textContent=tot;
-  const rate=tot>0?Math.round((y+g*2)/(tot*2)*1000)/10:null;
   document.getElementById('sRate').textContent=rate!==null?rate+'%':'—';
-  // Push to display via localStorage
-  try{localStorage.setItem('vd',JSON.stringify({r,y,g,tot,rate,ep:curEP,ph:curPh,ts:Date.now()}));}catch(e){}
+  // push to display
+  const shop=document.getElementById('curShopSel').value;
+  try{localStorage.setItem('vd',JSON.stringify({r,y,g,tot,rate,ep:curEP,ph:curPh,shop,ts:Date.now()}));}catch(e){}
+}
+
+// ── STORE RESULTS TABLE ──
+function updateStoreResultRows(){
+  const wrap=document.getElementById('storeResultRows');
+  wrap.innerHTML='';
+  SHOPS.forEach(s=>{
+    const res=storeResults[s];
+    if(res.pre===null&&res.post===null)return;
+    const row=document.createElement('div');
+    row.className='sr-row';
+    const nm=document.createElement('div');nm.className='sr-name';nm.textContent=s;
+    const pre=document.createElement('div');pre.className='sr-pre';pre.textContent=res.pre!==null?res.pre+'%':'—';
+    const post=document.createElement('div');post.className='sr-post';post.textContent=res.post!==null?res.post+'%':'—';
+    const diff=document.createElement('div');
+    if(res.pre!==null&&res.post!==null){
+      const d=Math.round((res.post-res.pre)*10)/10;
+      diff.className='sr-diff '+(d>=0?'up':'down');
+      diff.textContent=(d>=0?'+':'')+d+'%';
+    } else {
+      diff.className='sr-diff';diff.textContent='—';
+    }
+    row.appendChild(nm);row.appendChild(pre);row.appendChild(post);row.appendChild(diff);
+    wrap.appendChild(row);
+  });
 }
 
 // ── POLL ──
 async function poll(){
-  if(!roundId) return;
+  if(!roundId)return;
   try{
     const res=await fetch(`${DB}/votes/${roundId}.json`);
     const d=await res.json();
@@ -409,6 +531,13 @@ async function poll(){
     refreshMap();updStats();
   }catch(e){}
 }
+
+// ── SHOP SELECTOR ──
+document.getElementById('curShopSel').addEventListener('change',function(){
+  const v=this.value;
+  document.getElementById('curShopDisp').textContent=v||'尚未選擇';
+  try{localStorage.setItem('curShop',v);}catch(e){}
+});
 
 // ── EP/PHASE ──
 function selEP(ep){
@@ -425,28 +554,50 @@ function selPh(ph){
 
 // ── ROUND ──
 async function startRound(){
-  roundId='ep'+curEP+'_'+curPh+'_'+Date.now();
+  const shop=document.getElementById('curShopSel').value;
+  if(!shop){alert('請先選擇目前測試的店家！');return;}
+  roundId='ep'+curEP+'_'+curPh+'_'+shop.replace(/[^a-z0-9]/gi,'')+'_'+Date.now();
   votes={};refreshMap();updStats();
   try{
-    await fetch(`${DB}/round.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:true,id:roundId,ep:'ep'+curEP,phase:curPh,startedAt:Date.now()})});
-    setStatus(true);
-    if(!pollT) pollT=setInterval(poll,1800);
-  }catch(e){alert('啟動失敗，請檢查 Firebase URL');}
+    await fetch(`${DB}/round.json`,{method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({active:true,id:roundId,ep:'ep'+curEP,phase:curPh,shop,startedAt:Date.now()})});
+    setStatus(true,shop);
+    if(!pollT)pollT=setInterval(poll,1800);
+  }catch(e){alert('啟動失敗，請檢查網路');}
 }
 async function stopRound(){
+  // 儲存這輪結果
+  const shop=document.getElementById('curShopSel').value;
+  if(shop){
+    const {rate}=calcRate(votes);
+    if(rate!==null){
+      if(curPh==='pre') storeResults[shop].pre=rate;
+      else storeResults[shop].post=rate;
+      updateStoreResultRows();
+      // push compare data
+      try{localStorage.setItem('storeResults',JSON.stringify(storeResults));}catch(e){}
+    }
+  }
   try{await fetch(`${DB}/round.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:false,id:roundId})});}catch(e){}
   setStatus(false,'已結束');
 }
 async function resetRound(){
-  if(!confirm('確定清除所有票數並重置？'))return;
+  if(!confirm('確定清除票數並重置？'))return;
   votes={};roundId=null;refreshMap();updStats();
   try{await fetch(`${DB}/round.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:false})});}catch(e){}
   setStatus(false,'已重置');
 }
 function setStatus(live,msg){
   const el=document.getElementById('rdSt');
-  if(live){el.className='rs rs-live';el.textContent='EP'+curEP+' '+(curPh==='pre'?'前測':'後測')+' 進行中 ●';document.getElementById('topInfo').textContent='投票中';}
-  else{el.className='rs rs-idle';el.textContent=msg||'尚未開始';document.getElementById('topInfo').textContent=msg||'待機';}
+  if(live){
+    el.className='rs rs-live';
+    el.textContent='EP'+curEP+' '+(curPh==='pre'?'前測':'後測')+' · '+msg+' ●';
+    document.getElementById('topInfo').textContent=msg+' 投票中';
+  } else {
+    el.className='rs rs-idle';
+    el.textContent=msg||'尚未開始';
+    document.getElementById('topInfo').textContent=msg||'待機';
+  }
 }
 
 // ── TIMER ──
@@ -475,7 +626,32 @@ function syncT(){
 
 // ── DISPLAY ──
 function disp(screen){
-  try{localStorage.setItem('displayScreen',screen);localStorage.setItem('displayEP',String(curEP));localStorage.setItem('displayPh',curPh);const shop=document.getElementById('ulShop').value;const res=document.getElementById('ulRes').value;const sc=shopScores[shop]||[0,0,0,0];const tot=sc.reduce((a,b)=>a+(+b||0),0);localStorage.setItem('unlockInfo',JSON.stringify({shop,res,tot}));localStorage.setItem('shopScores',JSON.stringify(shopScores));}catch(e){}
+  const shop=document.getElementById('curShopSel').value;
+  try{
+    localStorage.setItem('displayScreen',screen);
+    localStorage.setItem('displayEP',String(curEP));
+    localStorage.setItem('displayPh',curPh);
+    localStorage.setItem('curShop',shop);
+    localStorage.setItem('shopScores',JSON.stringify(shopScores));
+    const ul={shop:document.getElementById('ulShop').value,res:document.getElementById('ulRes').value};
+    const sc=shopScores[ul.shop]||[0,0,0,0];
+    ul.tot=sc.reduce((a,b)=>a+(+b||0),0);
+    localStorage.setItem('unlockInfo',JSON.stringify(ul));
+  }catch(e){}
+}
+function dispCompare(){
+  const shop=document.getElementById('cmpShopSel').value||document.getElementById('curShopSel').value;
+  if(!shop){alert('請選擇要對比的店家');return;}
+  const res=storeResults[shop]||{pre:null,post:null};
+  try{
+    localStorage.setItem('compareShop',shop);
+    localStorage.setItem('compareData',JSON.stringify(res));
+    localStorage.setItem('displayScreen','compare');
+    localStorage.setItem('displayEP',String(curEP));
+  }catch(e){}
+}
+function dispUnlock(){
+  disp('unlock');
 }
 
 // ── SHOP SCORES ──
@@ -492,7 +668,7 @@ function buildShopList(){
 }
 
 buildMap();buildShopList();
-pollT=setInterval(poll,1800);
+if(!pollT)pollT=setInterval(poll,1800);
 </script>
 </body>
 </html>
