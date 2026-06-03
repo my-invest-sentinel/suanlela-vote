@@ -207,20 +207,30 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
   <!-- 搶答機制 -->
   <div class="sec">
     <div class="slbl">搶答機制</div>
-    <!-- 搶答倒數設定 -->
-    <div style="display:flex;gap:4px;margin-bottom:6px;">
-      <button class="tp" style="flex:1;" onclick="setBuzzT(5)">5s</button>
-      <button class="tp" style="flex:1;" onclick="setBuzzT(8)">8s</button>
-      <button class="tp" style="flex:1;" onclick="setBuzzT(10)">10s</button>
-      <button class="tp" style="flex:1;" onclick="setBuzzT(15)">15s</button>
+
+    <!-- 秒數選擇 + 開放搶答 -->
+    <div style="font-size:9px;color:#444;margin-bottom:4px;">搶答秒數</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:6px;">
+      <button class="tp" id="bz5" onclick="setBuzzT(5,this)">5s</button>
+      <button class="tp" id="bz8" onclick="setBuzzT(8,this)" style="background:#252525;color:#ccc;">8s</button>
+      <button class="tp" id="bz10" onclick="setBuzzT(10,this)">10s</button>
+      <button class="tp" id="bz15" onclick="setBuzzT(15,this)">15s</button>
     </div>
-    <button class="rbtn" id="buzzStartBtn" style="background:#7D1ADB;color:#fff;width:100%;padding:10px;font-size:12px;border:none;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:700;margin-bottom:6px;" onclick="startBuzz()">⚡ 開放搶答</button>
+    <div style="font-size:10px;color:#7D1ADB;text-align:center;margin-bottom:4px;" id="buzzSecLabel">目前設定：10 秒</div>
+    <button class="rbtn" id="buzzStartBtn"
+      style="background:#7D1ADB;color:#fff;width:100%;padding:10px;font-size:12px;border:none;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:700;margin-bottom:6px;"
+      onclick="startBuzz()">⚡ 開放搶答</button>
+
+    <!-- 搶答結果（即時顯示誰按了） -->
+    <div style="font-size:9px;color:#444;margin-bottom:4px;">搶答結果（即時）</div>
+    <div id="buzzResults" style="background:#1a1a1a;border-radius:5px;padding:6px;min-height:32px;margin-bottom:6px;font-size:11px;color:#888;">等待搶答中…</div>
+
     <!-- 本輪回答名單 -->
-    <div style="font-size:9px;color:#444;margin-bottom:4px;margin-top:4px;">本輪回答名單</div>
+    <div style="font-size:9px;color:#444;margin-bottom:4px;">本輪回答名單</div>
     <div id="buzzRoundList" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:4px;">
       <select class="sel" id="buzzShopSel" style="font-size:10px;">
-        <option value="">+ 加入店家</option>
+        <option value="">+ 選店家</option>
         <option>靜日香研</option><option>胖昇</option><option>新協泰米行</option>
         <option>九尖茶廠</option><option>波嶼</option><option>紙布家</option>
         <option>嘉禮慕華</option><option>馨眠</option><option>樸樂咖啡</option><option>安餃子</option>
@@ -231,9 +241,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
         <option value="機會卡">機會卡</option>
       </select>
     </div>
-    <button class="rbtn rb-stop" style="width:100%;padding:7px;font-size:10px;" onclick="addBuzzShop()">加入名單</button>
-    <button class="rbtn rb-reset" style="width:100%;padding:7px;font-size:10px;margin-top:3px;" onclick="clearBuzzList()">清除本輪名單</button>
-    <button class="rbtn" style="background:#1A5276;color:#7AB8F5;width:100%;padding:7px;font-size:10px;margin-top:3px;border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:700;" onclick="disp('buzzlist')">→ 投影幕顯示名單</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:4px;">
+      <button class="rbtn rb-stop" style="padding:7px;font-size:10px;" onclick="addBuzzShop()">＋ 加入名單</button>
+      <button class="rbtn rb-reset" style="padding:7px;font-size:10px;" onclick="clearBuzzList()">清除名單</button>
+    </div>
+    <button class="rbtn" style="background:#1A5276;color:#7AB8F5;width:100%;padding:7px;font-size:10px;margin-top:2px;border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:700;"
+      onclick="dispBuzzList()">→ 投影幕顯示名單</button>
   </div>
 
   <!-- 倒數計時 -->
@@ -796,48 +809,106 @@ function buildShopList(){
 
 // ── 搶答機制 ──
 let buzzSec=10, buzzTotal=10, buzzRun=false, buzzIv=null;
-let buzzList=[]; // [{shop, type}]
+let buzzList=[];
+let buzzRoundId=null;
 
-function setBuzzT(s){ buzzSec=buzzTotal=s; }
+function setBuzzT(s, btn){
+  buzzSec=buzzTotal=s;
+  // 更新按鈕樣式
+  ['bz5','bz8','bz10','bz15'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.style.background='#1a1a1a';el.style.color='#666';}
+  });
+  if(btn){btn.style.background='#252525';btn.style.color='#ccc';}
+  document.getElementById('buzzSecLabel').textContent='目前設定：'+s+' 秒';
+}
 
 function startBuzz(){
   if(buzzRun) return;
   buzzRun=true;
-  document.getElementById('buzzStartBtn').textContent='搶答中…';
-  document.getElementById('buzzStartBtn').style.background='#E74C3C';
+  buzzSec=buzzTotal;
+  // 建立新的搶答輪次 ID，讓 vote.html 知道搶答開始
+  buzzRoundId='buzz_'+Date.now();
+  const btn=document.getElementById('buzzStartBtn');
+  btn.textContent='搶答中… '+buzzSec+'s';
+  btn.style.background='#E74C3C';
+  // 清空舊的搶答結果
+  document.getElementById('buzzResults').textContent='搶答中…';
+
+  // 推送到 Firebase：搶答模式
+  const payload={
+    active:true, id:buzzRoundId,
+    ep:'ep'+curEP, phase:'buzz',
+    totalSec:buzzTotal,
+    startedAt:Date.now()
+  };
+  fetch(`${DB}/round.json`,{method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)});
+
+  // 切換投影幕到搶答畫面
   disp('buzz');
-  // 把倒數資訊推到 Firebase/localStorage 讓 display 知道是搶答模式
-  const q='搶！搶！搶！';
-  syncBuzz(buzzSec,buzzTotal,q);
+
+  // 開始倒數
+  syncBuzz(buzzSec, buzzTotal, '搶！搶！搶！');
   buzzIv=setInterval(()=>{
     if(buzzSec<=0){
       clearInterval(buzzIv); buzzRun=false;
-      document.getElementById('buzzStartBtn').textContent='⚡ 開放搶答';
-      document.getElementById('buzzStartBtn').style.background='#7D1ADB';
-      syncBuzz(0,buzzTotal,'搶答結束');
+      btn.textContent='⚡ 開放搶答';
+      btn.style.background='#7D1ADB';
+      syncBuzz(0, buzzTotal, '搶答結束！');
+      // 結束搶答
+      fetch(`${DB}/round.json`,{method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({active:false,id:buzzRoundId,phase:'buzz'})});
       return;
     }
     buzzSec--;
-    syncBuzz(buzzSec,buzzTotal,'搶！搶！搶！');
+    syncBuzz(buzzSec, buzzTotal, '搶！搶！搶！');
+    const btn2=document.getElementById('buzzStartBtn');
+    if(btn2) btn2.textContent='搶答中… '+buzzSec+'s';
+    // 讀取即時搶答結果
+    pollBuzzResults();
   },1000);
 }
 
-function syncBuzz(sec,total,label){
+function syncBuzz(sec, total, label){
   const pct=total>0?sec/total:0;
   const m=Math.floor(sec/60),s=sec%60;
   const str=m>0?m+':'+(s<10?'0':'')+s:String(sec);
-  const cls=sec<=3?'d':sec<=5?'w':'';
-  // 複用 timer 通道，但加上 buzz 標記
   const tData={str,pct,q:label,ts:Date.now(),isBuzz:true,buzzSec:sec};
   try{localStorage.setItem('timer',JSON.stringify(tData));}catch(e){}
-  try{fetch(`${DB}/display/timer.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(tData))});}catch(e){}
+  try{fetch(`${DB}/display/timer.json`,{
+    method:'PUT',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(JSON.stringify(tData))
+  });}catch(e){}
+}
+
+async function pollBuzzResults(){
+  if(!buzzRoundId) return;
+  try{
+    const res=await fetch(`${DB}/votes/${buzzRoundId}.json`);
+    const d=await res.json();
+    if(!d){return;}
+    const entries=Object.entries(d).sort((a,b)=>a[1].ts-b[1].ts);
+    const wrap=document.getElementById('buzzResults');
+    if(!wrap) return;
+    if(entries.length===0){wrap.textContent='等待搶答中…';return;}
+    wrap.innerHTML='';
+    entries.forEach(([key,v],i)=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 0;';
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'　';
+      row.innerHTML=`<span style="font-size:13px;">${medal}</span><span style="font-size:12px;color:#ccc;font-weight:700;">${v.shop||v.seat||key}</span><span style="font-size:10px;color:#555;">${new Date(v.ts).toLocaleTimeString()}</span>`;
+      wrap.appendChild(row);
+    });
+  }catch(e){}
 }
 
 function addBuzzShop(){
   const shop=document.getElementById('buzzShopSel').value;
   const type=document.getElementById('buzzTypeSel').value;
   if(!shop) return;
-  // 避免重複加入
   if(buzzList.find(b=>b.shop===shop)) return;
   buzzList.push({shop,type});
   renderBuzzList();
@@ -851,8 +922,8 @@ function renderBuzzList(){
   buzzList.forEach((b,i)=>{
     const row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:4px;padding:3px 6px;background:#1a1a1a;border-radius:4px;';
-    const typeColor={'搶答':'#E74C3C','評審指定':'#3498DB','機會卡':'#9B59B6'};
-    row.innerHTML=`<span style="font-size:10px;color:${typeColor[b.type]||'#888'};font-weight:700;min-width:52px;">${b.type}</span><span style="font-size:11px;color:#ccc;flex:1;">${b.shop}</span><span style="font-size:10px;color:#444;cursor:pointer;" onclick="removeBuzzShop(${i})">✕</span>`;
+    const tc={'搶答':'#E74C3C','評審指定':'#3498DB','機會卡':'#9B59B6'}[b.type]||'#888';
+    row.innerHTML=`<span style="font-size:10px;color:${tc};font-weight:700;min-width:52px;">${b.type}</span><span style="font-size:11px;color:#ccc;flex:1;">${b.shop}</span><span style="font-size:10px;color:#444;cursor:pointer;" onclick="removeBuzzShop(${i})">✕</span>`;
     wrap.appendChild(row);
   });
 }
@@ -871,8 +942,18 @@ function clearBuzzList(){
 
 function pushBuzzList(){
   try{localStorage.setItem('buzzList',JSON.stringify(buzzList));}catch(e){}
-  try{fetch(`${DB}/display/buzzList.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(buzzList))});}catch(e){}
+  try{fetch(`${DB}/display/buzzList.json`,{
+    method:'PUT',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(JSON.stringify(buzzList))
+  });}catch(e){}
 }
+
+function dispBuzzList(){
+  // 先把名單推到 Firebase，再切換畫面
+  pushBuzzList();
+  setTimeout(()=>disp('buzzlist'), 300);
+}
+
 
 buildMap();buildShopList();
 if(!pollT)pollT=setInterval(poll,1800);
