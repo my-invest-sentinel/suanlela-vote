@@ -287,16 +287,11 @@ let lastDispTs=0;
 
 async function pollFirebase(){
   try{
-    // 讀取整個 /display 節點（包含 tokenRound、roleRound 等子節點）
     const res=await fetch(`${DB}/display.json`);
     const d=await res.json();
     if(!d) return;
-    // 主畫面指令只在 ts 更新時觸發
-    if(d.ts&&d.ts>lastDispTs){
-      lastDispTs=d.ts;
-      applyDisplay(d);
-    }
-    // tokenRound 和 roleRound 獨立存取（不受 ts 限制）
+    // 每次都套用，不限制 ts（避免畫面沒反應）
+    applyDisplay(d);
     if(d.tokenRound) window._tokenRound=d.tokenRound;
     if(d.roleRound) window._roleRound=d.roleRound;
     if(d.roleShop) window._roleShop=d.roleShop;
