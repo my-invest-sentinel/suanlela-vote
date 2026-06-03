@@ -412,9 +412,9 @@ async async function poll(){
     const lsTsNum=parseInt(lsTs)||0;
 
     if(fbTs>=lsTsNum&&fbData&&fbData.screen){
-      // 用 Firebase
-      const sig=fbData.screen+'|'+fbTs;
-      if(sig!==lastSig){lastSig=sig;applyState(fbData);}
+      // 用 Firebase - 移除 sig 比較，每次都更新（避免同一畫面名單變更後不刷新）
+      applyState(fbData);
+      lastSig=fbData.screen+'|'+fbTs;
     } else if(lsScreen){
       // 用 localStorage
       const sig=lsScreen+'|'+lsTs;
