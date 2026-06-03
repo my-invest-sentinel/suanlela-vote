@@ -19,8 +19,7 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
 /* Timer */
 .tm-q{font-size:clamp(14px,2.4vw,28px);color:#555;text-align:center;padding:0 48px;margin-bottom:22px;line-height:1.5;max-width:840px;}
 .tm-big{font-size:clamp(100px,21vw,260px);font-weight:900;line-height:1;letter-spacing:-.02em;}
-.tm-big.w{color:var(--Yl);}
-.tm-big.d{color:var(--Rl);animation:dp .5s infinite alternate;}
+.tm-big.w{color:var(--Yl);}.tm-big.d{color:var(--Rl);animation:dp .5s infinite alternate;}
 @keyframes dp{from{opacity:1}to{opacity:.3}}
 .tm-bar-w{width:54vw;max-width:560px;height:5px;background:#111;border-radius:3px;margin-top:24px;overflow:hidden;}
 .tm-bar{height:100%;border-radius:3px;background:var(--Gl);transition:width .9s linear,background .4s;}
@@ -69,6 +68,13 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
 .ul-vb{font-size:clamp(12px,1.8vw,22px);color:#333;margin-bottom:10px;}
 .ul-res{font-size:clamp(28px,5.5vw,70px);font-weight:900;color:var(--Yl);text-align:center;line-height:1.2;}
 .ul-sc{font-size:clamp(12px,1.8vw,22px);color:#222;margin-top:18px;}
+/* Generic bar list (token/role) */
+.bar-list{width:72vw;max-width:680px;display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+.bar-row{display:flex;align-items:center;gap:14px;}
+.bar-lbl{width:130px;text-align:right;font-size:clamp(12px,1.8vw,20px);font-weight:600;color:#EAE7E0;flex-shrink:0;}
+.bar-track{flex:1;height:44px;background:#0e0e0e;border-radius:7px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:7px;display:flex;align-items:center;padding-left:12px;font-size:clamp(13px,1.8vw,22px);font-weight:800;transition:width .9s cubic-bezier(.4,0,.2,1);}
+.bar-pct{font-size:clamp(13px,1.6vw,20px);font-weight:700;color:#333;min-width:48px;text-align:right;}
 .wm{position:absolute;bottom:12px;right:16px;font-size:9px;color:#111;letter-spacing:.12em;}
 </style>
 </head>
@@ -128,20 +134,16 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
   </div>
   <div class="wm">NANTOU THEATER</div>
 </div>
-
-<!-- 籌碼結果 -->
 <div class="screen" id="sc-token">
   <div class="vt-t">EP2｜市場籌碼結果</div>
   <div class="vt-s">誰獲得最多消費意願？</div>
-  <div id="token-bars" style="width:72vw;max-width:680px;display:flex;flex-direction:column;gap:10px;margin-top:16px;"></div>
+  <div class="bar-list" id="token-bars"></div>
   <div class="wm">NANTOU THEATER</div>
 </div>
-
-<!-- 五角色結果 -->
 <div class="screen" id="sc-role">
   <div class="vt-t" id="role-title">EP4｜商品角色判定</div>
   <div class="vt-s" id="role-sub">觀眾認為這個商品的角色是？</div>
-  <div id="role-bars" style="width:72vw;max-width:680px;display:flex;flex-direction:column;gap:10px;margin-top:16px;"></div>
+  <div class="bar-list" id="role-bars"></div>
   <div class="wm">NANTOU THEATER</div>
 </div>
 <div class="screen" id="sc-unlock">
@@ -155,111 +157,116 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
 <div class="screen" id="sc-black" style="background:#000;"></div>
 
 <script>
+const DB='https://suanlela-vote-default-rtdb.firebaseio.com';
 const EP_LABELS=['EP1｜品牌定位戰','EP2｜商業模式戰','EP3｜品牌行銷戰','EP4｜商品營運戰'];
 const EP_VT=['品牌定位｜市場理解度','商業模式｜消費意願','品牌行銷｜內容留存率','商品營運｜購買意願'];
 const EP_VS=['觀眾聽完後的直覺反應','觀眾了解商業路徑後的反應','觀眾看完行銷內容後的反應','觀眾聽完商品介紹後的反應'];
 const SHOPS=['靜日香研','胖昇','新協泰米行','九尖茶廠','波嶼','紙布家','嘉禮慕華','馨眠','樸樂咖啡','安餃子'];
+const ROLES=[{id:'引流品',ico:'🎯'},{id:'主力品',ico:'💰'},{id:'加購品',ico:'➕'},{id:'回購品',ico:'🔄'},{id:'形象品',ico:'✨'}];
 
-let preRate=null,postRate=null;
+let preRate=null, postRate=null;
+let lastSig='';
+let timerData=null;
 
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));const el=document.getElementById('sc-'+id);if(el)el.classList.add('on');}
+// ── SHOW SCREEN ──
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  const el=document.getElementById('sc-'+id);
+  if(el) el.classList.add('on');
+}
 
-function setBar(fid,pid,pct,n){const fe=document.getElementById(fid);const pe=document.getElementById(pid);if(fe){fe.style.width=Math.max(pct>0?5:0,pct)+'%';fe.textContent=n;}if(pe)pe.textContent=Math.round(pct)+'%';}
-
-function renderVote(pre,r,y,g,rate){
+// ── VOTE BARS ──
+function setBar(fid,pid,pct,n){
+  const fe=document.getElementById(fid);const pe=document.getElementById(pid);
+  if(fe){fe.style.width=Math.max(pct>0?5:0,pct)+'%';fe.textContent=n;}
+  if(pe)pe.textContent=Math.round(pct)+'%';
+}
+function renderVote(isPre,r,y,g,rate){
   const tot=r+y+g;
   const rp=tot?r/tot*100:0,yp=tot?y/tot*100:0,gp=tot?g/tot*100:0;
-  const pf=pre?'pr':'po',pp=pre?'pr':'po';
-  setBar(pf+'R',pp+'Rp',rp,r);setBar(pf+'Y',pp+'Yp',yp,y);setBar(pf+'G',pp+'Gp',gp,g);
-  document.getElementById(pre?'preRD':'postRD').textContent=rate!==null?rate+'%':'—';
-  if(!pre&&preRate!==null&&rate!==null){
-    document.getElementById('postRSub').textContent='前測 '+preRate+'%　→　後測 '+rate+'%　進步 '+Math.round((rate-preRate)*10)/10+'%';
+  const p=isPre?'pr':'po';
+  setBar(p+'R',p+'Rp',rp,r);setBar(p+'Y',p+'Yp',yp,y);setBar(p+'G',p+'Gp',gp,g);
+  document.getElementById(isPre?'preRD':'postRD').textContent=rate!==null?rate+'%':'—';
+  if(!isPre&&preRate!==null&&rate!==null){
+    document.getElementById('postRSub').textContent='前測 '+preRate+'%　→　後測 '+rate+'%';
   }
 }
 
-function renderCompare(pre,post){
-  const pr=pre!==undefined?pre:preRate;
-  const po=post!==undefined?post:postRate;
-  document.getElementById('cm-pre').textContent=pr!==null?pr+'%':'—';
-  document.getElementById('cm-post').textContent=po!==null?po+'%':'—';
-  if(pr!==null&&po!==null){
-    const diff=Math.round((postRate-preRate)*10)/10;
+// ── COMPARE ──
+function renderCompare(pre,post,shopName){
+  document.getElementById('cm-shop').textContent=(shopName||'')+'　前後對比';
+  document.getElementById('cm-pre').textContent=pre!==null?pre+'%':'—';
+  document.getElementById('cm-post').textContent=post!==null?post+'%':'—';
+  if(pre!==null&&post!==null){
+    const diff=Math.round((post-pre)*10)/10;
     document.getElementById('cm-diff').textContent=diff>=0?'提升 '+diff+' 個百分點':'退步 '+Math.abs(diff)+' 個百分點';
     const ps=diff>=40?70:diff>=30?60:diff>=20?50:diff>=10?35:diff>=1?20:0;
     let tx='需要回診',cls='lv-e';
-    if(ps>=60){tx='急救成功 🎉';cls='lv-a';}else if(ps>=50){tx='明顯好轉 ✓';cls='lv-b';}else if(ps>=35){tx='暫時穩住';cls='lv-c';}else if(ps>=20){tx='持續觀察';cls='lv-d';}
+    if(ps>=60){tx='急救成功 🎉';cls='lv-a';}
+    else if(ps>=50){tx='明顯好轉 ✓';cls='lv-b';}
+    else if(ps>=35){tx='暫時穩住';cls='lv-c';}
+    else if(ps>=20){tx='持續觀察';cls='lv-d';}
     const lv=document.getElementById('cm-level');lv.textContent=tx;lv.className='cm-level '+cls;
   }
 }
 
+// ── SCOREBOARD ──
 function renderSb(scores,ep){
   document.getElementById('sbd-t').textContent=EP_LABELS[ep-1]+' 生存值榜';
   const wrap=document.getElementById('sbd-rows');wrap.innerHTML='';
-  SHOPS.forEach(s=>{const sc=scores[s]||[0,0,0,0];const tot=sc.reduce((a,b)=>a+(+b||0),0);const dr=document.createElement('div');dr.className='sbd-dr';dr.innerHTML=`<div class="sbd-nm">${s}</div>${sc.map(v=>`<div class="sbd-n">${v||'—'}</div>`).join('')}<div class="sbd-tot">${tot||'—'}</div>`;wrap.appendChild(dr);});
-}
-
-function renderToken(votes){
-  const counts={};
-  Object.values(votes||{}).forEach(v=>{
-    if(v.choice) counts[v.choice]=(counts[v.choice]||0)+1;
-  });
-  const total=Object.values(counts).reduce((a,b)=>a+b,0)||1;
-  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-  const wrap=document.getElementById('token-bars');
-  wrap.innerHTML='';
-  sorted.forEach(([shop,cnt],i)=>{
-    const pct=Math.round(cnt/total*100);
-    const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:14px;';
-    row.innerHTML=`
-      <div style="width:140px;text-align:right;font-size:clamp(12px,1.8vw,20px);font-weight:600;color:#EAE7E0;flex-shrink:0;">${shop}</div>
-      <div style="flex:1;height:44px;background:#111;border-radius:7px;overflow:hidden;">
-        <div style="height:100%;border-radius:7px;width:${Math.max(pct>0?5:0,pct)}%;background:${i===0?'linear-gradient(90deg,#7A5800,#E2A800)':'linear-gradient(90deg,#1a1a1a,#333)'};display:flex;align-items:center;padding-left:12px;font-size:clamp(13px,1.8vw,22px);font-weight:800;color:${i===0?'#000':'#666'};transition:width .9s;">
-          ${cnt}
-        </div>
-      </div>
-      <div style="font-size:clamp(13px,1.6vw,20px);font-weight:700;color:#555;min-width:48px;text-align:right;">${pct}%</div>
-    `;
-    wrap.appendChild(row);
+  SHOPS.forEach(s=>{
+    const sc=scores[s]||[0,0,0,0];const tot=sc.reduce((a,b)=>a+(+b||0),0);
+    const dr=document.createElement('div');dr.className='sbd-dr';
+    dr.innerHTML=`<div class="sbd-nm">${s}</div>${sc.map(v=>`<div class="sbd-n">${v||'—'}</div>`).join('')}<div class="sbd-tot">${tot||'—'}</div>`;
+    wrap.appendChild(dr);
   });
 }
 
-function renderRole(votes,shopName){
-  const ROLES=['引流品','主力品','加購品','回購品','形象品'];
-  const ICONS={'引流品':'🎯','主力品':'💰','加購品':'➕','回購品':'🔄','形象品':'✨'};
-  const counts={};
-  ROLES.forEach(r=>counts[r]=0);
-  Object.values(votes||{}).forEach(v=>{if(v.choice&&counts[v.choice]!==undefined)counts[v.choice]++;});
-  const total=Object.values(counts).reduce((a,b)=>a+b,0)||1;
-  if(shopName) document.getElementById('role-title').textContent='EP4｜'+shopName+'　商品角色判定';
-  const wrap=document.getElementById('role-bars');
-  wrap.innerHTML='';
-  ROLES.forEach(r=>{
-    const cnt=counts[r]||0;
-    const pct=Math.round(cnt/total*100);
-    const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:14px;';
-    row.innerHTML=`
-      <div style="width:110px;text-align:right;font-size:clamp(12px,1.8vw,20px);font-weight:600;color:#EAE7E0;flex-shrink:0;">${ICONS[r]} ${r}</div>
-      <div style="flex:1;height:40px;background:#111;border-radius:7px;overflow:hidden;">
-        <div style="height:100%;border-radius:7px;width:${Math.max(pct>0?5:0,pct)}%;background:linear-gradient(90deg,#1A3A5C,#3498DB);display:flex;align-items:center;padding-left:12px;font-size:clamp(13px,1.8vw,20px);font-weight:800;color:#fff;transition:width .9s;">
-          ${cnt}
-        </div>
-      </div>
-      <div style="font-size:clamp(13px,1.6vw,20px);font-weight:700;color:#555;min-width:48px;text-align:right;">${pct}%</div>
-    `;
-    wrap.appendChild(row);
-  });
-}
-
+// ── UNLOCK ──
 function renderUnlock(shop,res,tot){
   const im={'限動':'📱','社群貼文':'📣','影廳精':'🎬','影廳廣':'📺','實習':'🤝','票根':'🎟','小店生':'🏆'};
   let ico='🎉';for(const[k,v] of Object.entries(im)){if(res.includes(k)){ico=v;break;}}
-  document.getElementById('ul-ico').textContent=ico;document.getElementById('ul-shop').textContent=shop;document.getElementById('ul-res').textContent=res;document.getElementById('ul-sc').textContent='累積生存值 '+tot+' 點';
+  document.getElementById('ul-ico').textContent=ico;document.getElementById('ul-shop').textContent=shop;
+  document.getElementById('ul-res').textContent=res;document.getElementById('ul-sc').textContent='累積生存值 '+tot+' 點';
 }
 
+// ── TOKEN ──
+function renderToken(votes){
+  const counts={};
+  Object.values(votes||{}).forEach(v=>{if(v.choice)counts[v.choice]=(counts[v.choice]||0)+1;});
+  const total=Object.values(counts).reduce((a,b)=>a+b,0)||1;
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const wrap=document.getElementById('token-bars');wrap.innerHTML='';
+  sorted.forEach(([shop,cnt],i)=>{
+    const pct=Math.round(cnt/total*100);
+    const row=document.createElement('div');row.className='bar-row';
+    row.innerHTML=`<div class="bar-lbl">${shop}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(pct>0?5:0,pct)}%;background:${i===0?'linear-gradient(90deg,#7A5800,#E2A800)':'linear-gradient(90deg,#1a1a1a,#333)'};color:${i===0?'#000':'#666'};">${cnt}</div></div>
+      <div class="bar-pct">${pct}%</div>`;
+    wrap.appendChild(row);
+  });
+}
+
+// ── ROLE ──
+function renderRole(votes,shopName){
+  const counts={};ROLES.forEach(r=>counts[r.id]=0);
+  Object.values(votes||{}).forEach(v=>{if(v.choice&&counts[v.choice]!==undefined)counts[v.choice]++;});
+  const total=Object.values(counts).reduce((a,b)=>a+b,0)||1;
+  if(shopName)document.getElementById('role-title').textContent='EP4｜'+shopName+'　商品角色判定';
+  const wrap=document.getElementById('role-bars');wrap.innerHTML='';
+  ROLES.forEach(r=>{
+    const cnt=counts[r.id]||0;const pct=Math.round(cnt/total*100);
+    const row=document.createElement('div');row.className='bar-row';
+    row.innerHTML=`<div class="bar-lbl">${r.ico} ${r.id}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(pct>0?5:0,pct)}%;background:linear-gradient(90deg,#1A3A5C,#3498DB);color:#fff;">${cnt}</div></div>
+      <div class="bar-pct">${pct}%</div>`;
+    wrap.appendChild(row);
+  });
+}
+
+// ── TIMER ──
 function applyTimer(t){
-  if(!t||Date.now()-t.ts>4000) return;
+  if(!t||Date.now()-t.ts>5000)return;
   const pct=t.pct,cls=pct<=.2?'d':pct<=.4?'w':'';
   document.getElementById('tm-big').textContent=t.str;
   document.getElementById('tm-big').className='tm-big'+(cls?' '+cls:'');
@@ -268,73 +275,114 @@ function applyTimer(t){
   bar.style.width=(pct*100)+'%';
   bar.className='tm-bar'+(cls?' '+cls:'');
 }
-let fbTimer=null;
-async function syncTimerFirebase(){
+
+// ── MAIN APPLY ──
+function applyState(d){
+  if(!d)return;
+  const sc=d.screen;
+  const ep=parseInt(d.ep)||1;
+  const shop=d.shop||'';
+
+  if(sc) show(sc);
+
+  // EP labels
+  document.getElementById('sb-ep').textContent=EP_LABELS[ep-1];
+  document.getElementById('vt-pre-t').textContent=shop?EP_VT[ep-1]+'｜前測　'+shop:EP_VT[ep-1]+'｜前測';
+  document.getElementById('vt-post-t').textContent=shop?EP_VT[ep-1]+'｜後測　'+shop:EP_VT[ep-1]+'｜後測';
+  document.getElementById('vt-pre-s').textContent=EP_VS[ep-1];
+
+  // Vote data
   try{
-    const res=await fetch(`${DB}/display/timer.json`);
-    const raw=await res.json();
-    if(raw) fbTimer=JSON.parse(raw);
+    const vdRaw=d.vd||localStorage.getItem('vd');
+    if(vdRaw){
+      const vd=JSON.parse(vdRaw);
+      if(vd.ph==='pre'){preRate=vd.rate;renderVote(true,vd.r,vd.y,vd.g,vd.rate);}
+      else{postRate=vd.rate;renderVote(false,vd.r,vd.y,vd.g,vd.rate);}
+    }
+  }catch(e){}
+
+  // Compare
+  if(sc==='compare'){
+    try{
+      const cmpData=JSON.parse(d.cmpData||'{"pre":null,"post":null}');
+      renderCompare(cmpData.pre,cmpData.post,d.cmpShop||'');
+    }catch(e){}
+  }
+
+  // Scoreboard
+  if(sc==='scoreboard'){
+    try{renderSb(JSON.parse(d.scores||'{}'),ep);}catch(e){}
+  }
+
+  // Unlock
+  if(sc==='unlock'){
+    try{const u=JSON.parse(d.unlock||'{}');renderUnlock(u.shop||'',u.res||'',u.tot||0);}catch(e){}
+  }
+
+  // Token
+  if(sc==='token'&&d.tokenRound){
+    fetch(`${DB}/votes/${d.tokenRound}.json`).then(r=>r.json()).then(v=>renderToken(v)).catch(()=>{});
+  }
+
+  // Role
+  if(sc==='role'&&d.roleRound){
+    fetch(`${DB}/votes/${d.roleRound}.json`).then(r=>r.json()).then(v=>renderRole(v,d.roleShop||'')).catch(()=>{});
+  }
+
+  // Timer
+  try{
+    const tRaw=d.timer||localStorage.getItem('timer');
+    if(tRaw)applyTimer(JSON.parse(tRaw));
   }catch(e){}
 }
-function syncTimer(){
-  // 優先用 Firebase timer（跨電腦），備用 localStorage
-  const t=fbTimer||JSON.parse(localStorage.getItem('timer')||'null');
-  applyTimer(t);
-}
 
-const DB='https://suanlela-vote-default-rtdb.firebaseio.com';
-let lastScreen='';
-
-// 從 Firebase 讀取並套用（跨電腦）
-async function pollFirebase(){
+// ── POLL ──
+async function poll(){
   try{
+    // 從 Firebase 讀整個 display 節點
     const res=await fetch(`${DB}/display.json`);
-    const d=await res.json();
-    if(!d) return;
-    // 只在畫面指令改變時更新，避免頻繁閃動
-    const sig=d.screen+'|'+d.ts;
-    if(sig===lastScreen) return;
-    lastScreen=sig;
-    applyDisplay(d);
-    if(d.tokenRound) window._tokenRound=d.tokenRound;
-    if(d.roleRound) window._roleRound=d.roleRound;
-    if(d.roleShop) window._roleShop=d.roleShop;
-  }catch(e){}
-}
+    const fbData=await res.json();
 
-// 從 localStorage 讀取（同一台電腦）
-let lastLocalSig='';
-function pollLocal(){
+    // 從 localStorage 讀（同台電腦用）
+    const lsScreen=localStorage.getItem('displayScreen');
+    const lsTs=localStorage.getItem('displayTs')||'0';
+
+    // 決定用哪個：Firebase ts 較新用 Firebase，否則用 localStorage
+    const fbTs=fbData?fbData.ts||0:0;
+    const lsTsNum=parseInt(lsTs)||0;
+
+    if(fbTs>=lsTsNum&&fbData&&fbData.screen){
+      // 用 Firebase
+      const sig=fbData.screen+'|'+fbTs;
+      if(sig!==lastSig){lastSig=sig;applyState(fbData);}
+    } else if(lsScreen){
+      // 用 localStorage
+      const sig=lsScreen+'|'+lsTs;
+      if(sig!==lastSig){
+        lastSig=sig;
+        applyState({
+          screen:lsScreen,ep:localStorage.getItem('displayEP')||'1',
+          ph:localStorage.getItem('displayPh')||'pre',
+          shop:localStorage.getItem('curShop')||'',
+          scores:localStorage.getItem('shopScores'),
+          unlock:localStorage.getItem('unlockInfo'),
+          cmpShop:localStorage.getItem('compareShop')||'',
+          cmpData:localStorage.getItem('compareData'),
+          vd:localStorage.getItem('vd'),
+        });
+      }
+    }
+  }catch(e){}
+
+  // Timer（每次都更新）
   try{
-    const sc=localStorage.getItem('displayScreen');
-    const ts=localStorage.getItem('displayTs')||'0';
-    if(!sc) return;
-    const sig=sc+'|'+ts;
-    if(sig===lastLocalSig) return;
-    lastLocalSig=sig;
-    applyDisplay({
-      screen:sc,
-      ep:localStorage.getItem('displayEP')||'1',
-      ph:localStorage.getItem('displayPh')||'pre',
-      shop:localStorage.getItem('curShop')||'',
-      shopScores:localStorage.getItem('shopScores'),
-      unlock:localStorage.getItem('unlockInfo'),
-      cmpShop:localStorage.getItem('compareShop')||'',
-      cmpData:localStorage.getItem('compareData'),
-      vd:localStorage.getItem('vd'),
-    });
+    const tRaw=localStorage.getItem('timer');
+    if(tRaw)applyTimer(JSON.parse(tRaw));
   }catch(e){}
 }
 
-function poll(){
-  syncTimer();
-  pollLocal();
-}
-
-setInterval(poll,400);
-setInterval(pollFirebase,1200);
-setInterval(syncTimerFirebase,1000);
-poll();pollFirebase();syncTimerFirebase();
+setInterval(poll,800);
+poll();
 </script>
 </body>
 </html>
