@@ -397,31 +397,21 @@ function renderBuzzList(list){
 }
 
 // ── POLL ──
-async async function poll(){
-  try{
-    // 從 Firebase 讀整個 display 節點
-    const res=await fetch(`${DB}/display.json`);
-    const fbData=await res.json();
+function poll(){
+  // Firebase 路徑
+  fetch(DB+'/display.json')
+    .then(function(res){return res.json();})
+    .then(function(fbData){
+      var lsScreen=localStorage.getItem('displayScreen');
+      var lsTs=parseInt(localStorage.getItem('displayTs')||'0');
+      var fbTs=fbData?fbData.ts||0:0;
 
-    // 從 localStorage 讀（同台電腦用）
-    const lsScreen=localStorage.getItem('displayScreen');
-    const lsTs=localStorage.getItem('displayTs')||'0';
-
-    // 決定用哪個：Firebase ts 較新用 Firebase，否則用 localStorage
-    const fbTs=fbData?fbData.ts||0:0;
-    const lsTsNum=parseInt(lsTs)||0;
-
-    if(fbTs>=lsTsNum&&fbData&&fbData.screen){
-      // 用 Firebase - 移除 sig 比較，每次都更新（避免同一畫面名單變更後不刷新）
-      applyState(fbData);
-      lastSig=fbData.screen+'|'+fbTs;
-    } else if(lsScreen){
-      // 用 localStorage
-      const sig=lsScreen+'|'+lsTs;
-      if(sig!==lastSig){
-        lastSig=sig;
+      if(fbTs>=lsTs&&fbData&&fbData.screen){
+        applyState(fbData);
+      } else if(lsScreen){
         applyState({
-          screen:lsScreen,ep:localStorage.getItem('displayEP')||'1',
+          screen:lsScreen,
+          ep:localStorage.getItem('displayEP')||'1',
           ph:localStorage.getItem('displayPh')||'pre',
           shop:localStorage.getItem('curShop')||'',
           scores:localStorage.getItem('shopScores'),
@@ -432,18 +422,34 @@ async async function poll(){
           buzzList:localStorage.getItem('buzzList'),
         });
       }
-    }
-  }catch(e){}
 
-  // Timer（每次都更新，優先 Firebase，備用 localStorage）
-  try{
-    const fbTimerRaw=fbData&&fbData.timer?fbData.timer:null;
-    const lsTimerRaw=localStorage.getItem('timer');
-    const tRaw=fbTimerRaw||lsTimerRaw;
-    if(tRaw)applyTimer(JSON.parse(tRaw));
-  }catch(e){}
+      // Timer
+      var fbTimerRaw=fbData&&fbData.timer?fbData.timer:null;
+      var lsTimerRaw=localStorage.getItem('timer');
+      var tRaw=fbTimerRaw||lsTimerRaw;
+      if(tRaw){try{applyTimer(JSON.parse(tRaw));}catch(e){}}
+    })
+    .catch(function(){
+      // Firebase 失敗時用 localStorage
+      var lsScreen=localStorage.getItem('displayScreen');
+      if(lsScreen){
+        applyState({
+          screen:lsScreen,
+          ep:localStorage.getItem('displayEP')||'1',
+          ph:localStorage.getItem('displayPh')||'pre',
+          shop:localStorage.getItem('curShop')||'',
+          scores:localStorage.getItem('shopScores'),
+          unlock:localStorage.getItem('unlockInfo'),
+          cmpShop:localStorage.getItem('compareShop')||'',
+          cmpData:localStorage.getItem('compareData'),
+          vd:localStorage.getItem('vd'),
+          buzzList:localStorage.getItem('buzzList'),
+        });
+      }
+      var tRaw=localStorage.getItem('timer');
+      if(tRaw){try{applyTimer(JSON.parse(tRaw));}catch(e){}}
+    });
 }
-
 setInterval(poll,800);
 poll();
 </script>
