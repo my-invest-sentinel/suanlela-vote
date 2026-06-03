@@ -682,11 +682,13 @@ function syncT(){
 
 // ── DISPLAY ── 同時寫 localStorage 和 Firebase
 async function pushDisplay(data){
+  const now=Date.now();
   // localStorage (同台電腦用)
   try{
     Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,typeof v==='object'?JSON.stringify(v):String(v)));
+    localStorage.setItem('displayTs',String(now));
   }catch(e){}
-  // Firebase (跨電腦用) - 存成字串避免巢狀問題
+  // Firebase (跨電腦用)
   try{
     const payload={
       screen: data.displayScreen||'standby',
@@ -697,13 +699,15 @@ async function pushDisplay(data){
       cmpData: data.compareData||'',
       scores: data.shopScores||'',
       unlock: data.unlockInfo||'',
-      ts: Date.now()
+      vd: localStorage.getItem('vd')||'',
+      ts: now
     };
-    await fetch(`${DB}/display.json`,{
+    const res=await fetch(`${DB}/display.json`,{
       method:'PUT',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     });
+    if(!res.ok) console.log('Firebase error:',res.status);
   }catch(e){console.log('Firebase push error:',e);}
 }
 
@@ -732,7 +736,9 @@ function dispCompare(){
     displayScreen:'compare',
     displayEP:String(curEP),
     compareShop:shop,
+    cmpShop:shop,
     compareData:JSON.stringify(res),
+    cmpData:JSON.stringify(res),
     storeResults:JSON.stringify(storeResults),
   });
 }
