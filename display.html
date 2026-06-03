@@ -283,14 +283,18 @@ function syncTimer(){
 }
 
 const DB='https://suanlela-vote-default-rtdb.firebaseio.com';
-let lastDispTs=0;
+let lastScreen='';
 
+// 從 Firebase 讀取並套用（跨電腦）
 async function pollFirebase(){
   try{
     const res=await fetch(`${DB}/display.json`);
     const d=await res.json();
     if(!d) return;
-    // 每次都套用，不限制 ts（避免畫面沒反應）
+    // 只在畫面指令改變時更新，避免頻繁閃動
+    const sig=d.screen+'|'+d.ts;
+    if(sig===lastScreen) return;
+    lastScreen=sig;
     applyDisplay(d);
     if(d.tokenRound) window._tokenRound=d.tokenRound;
     if(d.roleRound) window._roleRound=d.roleRound;
@@ -298,85 +302,37 @@ async function pollFirebase(){
   }catch(e){}
 }
 
-function applyDisplay(d){
+// 從 localStorage 讀取（同一台電腦）
+let lastLocalSig='';
+function pollLocal(){
   try{
-    // 相容新格式（Firebase）和舊格式（localStorage）
-    const sc=d.screen||d.displayScreen;
-    const ep=parseInt(d.ep||d.displayEP)||1;
-    const curShop=d.shop||d.curShop||'';
-    const cmpShop=d.cmpShop||d.compareShop||'';
-
-    if(sc) show(sc);
-
-    document.getElementById('sb-ep').textContent=EP_LABELS[ep-1];
-    const preTitle=curShop?EP_VT[ep-1]+'｜前測　　'+curShop:EP_VT[ep-1]+'｜前測';
-    const postTitle=curShop?EP_VT[ep-1]+'｜後測　　'+curShop:EP_VT[ep-1]+'｜後測';
-    document.getElementById('vt-pre-t').textContent=preTitle;
-    document.getElementById('vt-post-t').textContent=postTitle;
-    document.getElementById('vt-pre-s').textContent=EP_VS[ep-1];
-
-    const vdRaw=d.vd||localStorage.getItem('vd');
-    if(vdRaw){
-      const vd=JSON.parse(vdRaw);
-      if(vd.ph==='pre'){preRate=vd.rate;renderVote(true,vd.r,vd.y,vd.g,vd.rate);}
-      else{postRate=vd.rate;renderVote(false,vd.r,vd.y,vd.g,vd.rate);}
-    }
-
-    const cmpRaw=d.cmpData||d.compareData;
-    if(sc==='compare'&&cmpRaw){
-      const cmpData=JSON.parse(cmpRaw);
-      document.getElementById('cm-shop').textContent=(cmpShop||'')+'　前後對比';
-      renderCompare(cmpData.pre,cmpData.post);
-    }
-
-    const scoresRaw=d.scores||d.shopScores;
-    if(sc==='scoreboard'&&scoresRaw){
-      renderSb(JSON.parse(scoresRaw),ep);
-    }
-
-    const ulRaw=d.unlock||d.unlockInfo;
-    if(sc==='unlock'&&ulRaw){
-      const u=JSON.parse(ulRaw);renderUnlock(u.shop,u.res,u.tot);
-    }
-
-    // 籌碼結果
-    if(sc==='token'){
-      const tr=d.tokenRound||window._tokenRound;
-      if(tr) fetch(`${DB}/votes/${tr}.json`).then(r=>r.json()).then(v=>renderToken(v)).catch(()=>{});
-    }
-    // 五角色結果
-    if(sc==='role'){
-      const rr=d.roleRound||window._roleRound;
-      const rs=d.roleShop||window._roleShop||'';
-      if(rr) fetch(`${DB}/votes/${rr}.json`).then(r=>r.json()).then(v=>renderRole(v,rs)).catch(()=>{});
-    }
-  }catch(e){console.log('applyDisplay error:',e);}
+    const sc=localStorage.getItem('displayScreen');
+    const ts=localStorage.getItem('displayTs')||'0';
+    if(!sc) return;
+    const sig=sc+'|'+ts;
+    if(sig===lastLocalSig) return;
+    lastLocalSig=sig;
+    applyDisplay({
+      screen:sc,
+      ep:localStorage.getItem('displayEP')||'1',
+      ph:localStorage.getItem('displayPh')||'pre',
+      shop:localStorage.getItem('curShop')||'',
+      shopScores:localStorage.getItem('shopScores'),
+      unlock:localStorage.getItem('unlockInfo'),
+      cmpShop:localStorage.getItem('compareShop')||'',
+      cmpData:localStorage.getItem('compareData'),
+      vd:localStorage.getItem('vd'),
+    });
+  }catch(e){}
 }
 
 function poll(){
   syncTimer();
-  // 只在 Firebase 尚未收到資料時才用 localStorage（同台電腦備用）
-  if(lastDispTs===0){
-    try{
-      const sc=localStorage.getItem('displayScreen');
-      if(!sc) return;
-      applyDisplay({
-        displayScreen:sc,
-        displayEP:localStorage.getItem('displayEP')||'1',
-        displayPh:localStorage.getItem('displayPh')||'pre',
-        curShop:localStorage.getItem('curShop')||'',
-        shopScores:localStorage.getItem('shopScores'),
-        unlockInfo:localStorage.getItem('unlockInfo'),
-        compareShop:localStorage.getItem('compareShop')||'',
-        compareData:localStorage.getItem('compareData'),
-        vd:localStorage.getItem('vd'),
-      });
-    }catch(e){}
-  }
+  pollLocal();
 }
 
-setInterval(poll,500);
-setInterval(pollFirebase,1000);
+setInterval(poll,400);
+setInterval(pollFirebase,1200);
 setInterval(syncTimerFirebase,1000);
 poll();pollFirebase();syncTimerFirebase();
 </script>
