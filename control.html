@@ -204,6 +204,38 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
     </div>
   </div>
 
+  <!-- 搶答機制 -->
+  <div class="sec">
+    <div class="slbl">搶答機制</div>
+    <!-- 搶答倒數設定 -->
+    <div style="display:flex;gap:4px;margin-bottom:6px;">
+      <button class="tp" style="flex:1;" onclick="setBuzzT(5)">5s</button>
+      <button class="tp" style="flex:1;" onclick="setBuzzT(8)">8s</button>
+      <button class="tp" style="flex:1;" onclick="setBuzzT(10)">10s</button>
+      <button class="tp" style="flex:1;" onclick="setBuzzT(15)">15s</button>
+    </div>
+    <button class="rbtn" id="buzzStartBtn" style="background:#7D1ADB;color:#fff;width:100%;padding:10px;font-size:12px;border:none;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:700;margin-bottom:6px;" onclick="startBuzz()">⚡ 開放搶答</button>
+    <!-- 本輪回答名單 -->
+    <div style="font-size:9px;color:#444;margin-bottom:4px;margin-top:4px;">本輪回答名單</div>
+    <div id="buzzRoundList" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:4px;">
+      <select class="sel" id="buzzShopSel" style="font-size:10px;">
+        <option value="">+ 加入店家</option>
+        <option>靜日香研</option><option>胖昇</option><option>新協泰米行</option>
+        <option>九尖茶廠</option><option>波嶼</option><option>紙布家</option>
+        <option>嘉禮慕華</option><option>馨眠</option><option>樸樂咖啡</option><option>安餃子</option>
+      </select>
+      <select class="sel" id="buzzTypeSel" style="font-size:10px;">
+        <option value="搶答">搶答</option>
+        <option value="評審指定">評審指定</option>
+        <option value="機會卡">機會卡</option>
+      </select>
+    </div>
+    <button class="rbtn rb-stop" style="width:100%;padding:7px;font-size:10px;" onclick="addBuzzShop()">加入名單</button>
+    <button class="rbtn rb-reset" style="width:100%;padding:7px;font-size:10px;margin-top:3px;" onclick="clearBuzzList()">清除本輪名單</button>
+    <button class="rbtn" style="background:#1A5276;color:#7AB8F5;width:100%;padding:7px;font-size:10px;margin-top:3px;border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:700;" onclick="disp('buzzlist')">→ 投影幕顯示名單</button>
+  </div>
+
   <!-- 倒數計時 -->
   <div class="sec">
     <div class="slbl">倒數計時</div>
@@ -232,6 +264,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
     <div class="dg">
       <button class="dbtn" onclick="disp('standby')">待機</button>
       <button class="dbtn" onclick="disp('timer')">倒數</button>
+      <button class="dbtn" onclick="disp('buzz')">搶答畫面</button>
+      <button class="dbtn" onclick="disp('buzzlist')">本輪名單</button>
       <button class="dbtn" onclick="disp('vpre')">前測結果</button>
       <button class="dbtn" onclick="disp('vpost')">後測結果</button>
       <button class="dbtn" onclick="dispCompare()">前後對比</button>
@@ -758,6 +792,86 @@ function buildShopList(){
     inp.oninput=()=>{shopScores[s][curEP-1]=parseInt(inp.value)||0;tot.textContent=shopScores[s].reduce((a,b)=>a+(+b||0),0)||0;try{localStorage.setItem('shopScores',JSON.stringify(shopScores));}catch(e){}};
     row.appendChild(nm);row.appendChild(inp);row.appendChild(tot);wrap.appendChild(row);
   });
+}
+
+// ── 搶答機制 ──
+let buzzSec=10, buzzTotal=10, buzzRun=false, buzzIv=null;
+let buzzList=[]; // [{shop, type}]
+
+function setBuzzT(s){ buzzSec=buzzTotal=s; }
+
+function startBuzz(){
+  if(buzzRun) return;
+  buzzRun=true;
+  document.getElementById('buzzStartBtn').textContent='搶答中…';
+  document.getElementById('buzzStartBtn').style.background='#E74C3C';
+  disp('buzz');
+  // 把倒數資訊推到 Firebase/localStorage 讓 display 知道是搶答模式
+  const q='搶！搶！搶！';
+  syncBuzz(buzzSec,buzzTotal,q);
+  buzzIv=setInterval(()=>{
+    if(buzzSec<=0){
+      clearInterval(buzzIv); buzzRun=false;
+      document.getElementById('buzzStartBtn').textContent='⚡ 開放搶答';
+      document.getElementById('buzzStartBtn').style.background='#7D1ADB';
+      syncBuzz(0,buzzTotal,'搶答結束');
+      return;
+    }
+    buzzSec--;
+    syncBuzz(buzzSec,buzzTotal,'搶！搶！搶！');
+  },1000);
+}
+
+function syncBuzz(sec,total,label){
+  const pct=total>0?sec/total:0;
+  const m=Math.floor(sec/60),s=sec%60;
+  const str=m>0?m+':'+(s<10?'0':'')+s:String(sec);
+  const cls=sec<=3?'d':sec<=5?'w':'';
+  // 複用 timer 通道，但加上 buzz 標記
+  const tData={str,pct,q:label,ts:Date.now(),isBuzz:true,buzzSec:sec};
+  try{localStorage.setItem('timer',JSON.stringify(tData));}catch(e){}
+  try{fetch(`${DB}/display/timer.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(tData))});}catch(e){}
+}
+
+function addBuzzShop(){
+  const shop=document.getElementById('buzzShopSel').value;
+  const type=document.getElementById('buzzTypeSel').value;
+  if(!shop) return;
+  // 避免重複加入
+  if(buzzList.find(b=>b.shop===shop)) return;
+  buzzList.push({shop,type});
+  renderBuzzList();
+  pushBuzzList();
+  document.getElementById('buzzShopSel').value='';
+}
+
+function renderBuzzList(){
+  const wrap=document.getElementById('buzzRoundList');
+  wrap.innerHTML='';
+  buzzList.forEach((b,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:4px;padding:3px 6px;background:#1a1a1a;border-radius:4px;';
+    const typeColor={'搶答':'#E74C3C','評審指定':'#3498DB','機會卡':'#9B59B6'};
+    row.innerHTML=`<span style="font-size:10px;color:${typeColor[b.type]||'#888'};font-weight:700;min-width:52px;">${b.type}</span><span style="font-size:11px;color:#ccc;flex:1;">${b.shop}</span><span style="font-size:10px;color:#444;cursor:pointer;" onclick="removeBuzzShop(${i})">✕</span>`;
+    wrap.appendChild(row);
+  });
+}
+
+function removeBuzzShop(i){
+  buzzList.splice(i,1);
+  renderBuzzList();
+  pushBuzzList();
+}
+
+function clearBuzzList(){
+  buzzList=[];
+  renderBuzzList();
+  pushBuzzList();
+}
+
+function pushBuzzList(){
+  try{localStorage.setItem('buzzList',JSON.stringify(buzzList));}catch(e){}
+  try{fetch(`${DB}/display/buzzList.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(buzzList))});}catch(e){}
 }
 
 buildMap();buildShopList();

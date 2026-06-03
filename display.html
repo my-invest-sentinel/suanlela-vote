@@ -154,6 +154,24 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
   <div class="ul-sc" id="ul-sc">累積生存值 — 點</div>
   <div class="wm">NANTOU THEATER</div>
 </div>
+<!-- 搶答畫面 -->
+<div class="screen" id="sc-buzz">
+  <div style="text-align:center;">
+    <div style="font-size:clamp(20px,3vw,36px);color:#888;margin-bottom:16px;letter-spacing:.1em;">BUZZ IN！搶答開始</div>
+    <div class="tm-big" id="buzz-num" style="color:#E74C3C;">10</div>
+    <div class="tm-bar-w" style="margin-top:20px;"><div class="tm-bar" id="buzz-bar" style="width:100%;background:#E74C3C;"></div></div>
+    <div style="font-size:clamp(24px,4vw,52px);font-weight:800;color:#E74C3C;margin-top:28px;letter-spacing:.08em;" id="buzz-label">搶！搶！搶！</div>
+  </div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+
+<!-- 本輪回答名單 -->
+<div class="screen" id="sc-buzzlist">
+  <div style="font-size:clamp(18px,3vw,36px);font-weight:800;text-align:center;margin-bottom:32px;">本輪回答店家</div>
+  <div id="buzzlist-rows" style="display:flex;flex-direction:column;gap:12px;width:60vw;max-width:560px;"></div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+
 <div class="screen" id="sc-black" style="background:#000;"></div>
 
 <script>
@@ -268,6 +286,17 @@ function renderRole(votes,shopName){
 function applyTimer(t){
   if(!t||Date.now()-t.ts>5000)return;
   const pct=t.pct,cls=pct<=.2?'d':pct<=.4?'w':'';
+  // 搶答模式：更新搶答畫面的計時
+  if(t.isBuzz){
+    const bn=document.getElementById('buzz-num');
+    const bb=document.getElementById('buzz-bar');
+    const bl=document.getElementById('buzz-label');
+    if(bn) bn.textContent=t.str;
+    if(bb) bb.style.width=(pct*100)+'%';
+    if(bl) bl.textContent=t.q||'搶！搶！搶！';
+    return;
+  }
+  // 一般計時模式
   document.getElementById('tm-big').textContent=t.str;
   document.getElementById('tm-big').className='tm-big'+(cls?' '+cls:'');
   if(t.q)document.getElementById('tm-q').textContent=t.q;
@@ -329,6 +358,14 @@ function applyState(d){
     fetch(`${DB}/votes/${d.roleRound}.json`).then(r=>r.json()).then(v=>renderRole(v,d.roleShop||'')).catch(()=>{});
   }
 
+  // Buzz list
+  if(sc==='buzzlist'){
+    try{
+      const blRaw=d.buzzList||localStorage.getItem('buzzList');
+      if(blRaw) renderBuzzList(JSON.parse(blRaw));
+    }catch(e){}
+  }
+
   // Timer
   try{
     const tRaw=d.timer||localStorage.getItem('timer');
@@ -336,8 +373,31 @@ function applyState(d){
   }catch(e){}
 }
 
+// ── BUZZ LIST ──
+function renderBuzzList(list){
+  const wrap=document.getElementById('buzzlist-rows');
+  if(!wrap) return;
+  wrap.innerHTML='';
+  const typeColor={'搶答':'#E74C3C','評審指定':'#3498DB','機會卡':'#9B59B6'};
+  const typeIcon={'搶答':'⚡','評審指定':'👆','機會卡':'🃏'};
+  (list||[]).forEach((b,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:16px;padding:14px 24px;background:#0e0e0e;border-radius:10px;border:1px solid #1a1a1a;';
+    const tc=typeColor[b.type]||'#888';
+    row.innerHTML=`
+      <span style="font-size:clamp(18px,2.5vw,30px);">${typeIcon[b.type]||'•'}</span>
+      <span style="font-size:clamp(14px,2vw,24px);font-weight:800;color:#EAE7E0;flex:1;">${b.shop}</span>
+      <span style="font-size:clamp(11px,1.4vw,16px);font-weight:700;color:${tc};padding:4px 12px;border:1.5px solid ${tc};border-radius:20px;">${b.type}</span>
+    `;
+    wrap.appendChild(row);
+  });
+  if((list||[]).length===0){
+    wrap.innerHTML='<div style="font-size:20px;color:#333;text-align:center;">尚無名單</div>';
+  }
+}
+
 // ── POLL ──
-async function poll(){
+async async function poll(){
   try{
     // 從 Firebase 讀整個 display 節點
     const res=await fetch(`${DB}/display.json`);
@@ -374,9 +434,11 @@ async function poll(){
     }
   }catch(e){}
 
-  // Timer（每次都更新）
+  // Timer（每次都更新，優先 Firebase，備用 localStorage）
   try{
-    const tRaw=localStorage.getItem('timer');
+    const fbTimerRaw=fbData&&fbData.timer?fbData.timer:null;
+    const lsTimerRaw=localStorage.getItem('timer');
+    const tRaw=fbTimerRaw||lsTimerRaw;
     if(tRaw)applyTimer(JSON.parse(tRaw));
   }catch(e){}
 }
