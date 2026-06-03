@@ -949,9 +949,37 @@ function pushBuzzList(){
 }
 
 function dispBuzzList(){
-  // 先把名單推到 Firebase，再切換畫面
-  pushBuzzList();
-  setTimeout(()=>disp('buzzlist'), 300);
+  // 直接把 buzzList 包進 pushDisplay payload
+  const shop=document.getElementById('curShopSel').value;
+  const ul={shop:document.getElementById('ulShop').value,res:document.getElementById('ulRes').value};
+  const sc=shopScores[ul.shop]||[0,0,0,0];
+  ul.tot=sc.reduce((a,b)=>a+(+b||0),0);
+  const now=Date.now();
+  const payload={
+    screen:'buzzlist',
+    ep:String(curEP),
+    ph:curPh,
+    shop,
+    scores:JSON.stringify(shopScores),
+    unlock:JSON.stringify(ul),
+    buzzList:JSON.stringify(buzzList),
+    vd:localStorage.getItem('vd')||'',
+    ts:now,
+    displayTs:String(now),
+  };
+  // localStorage
+  try{
+    Object.entries(payload).forEach(([k,v])=>localStorage.setItem(k==='screen'?'displayScreen':k==='ep'?'displayEP':k==='ph'?'displayPh':k,v));
+    localStorage.setItem('displayTs',String(now));
+  }catch(e){}
+  // Firebase
+  try{
+    fetch(`${DB}/display.json`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+  }catch(e){}
 }
 
 
