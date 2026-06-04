@@ -602,6 +602,15 @@ function selEP(ep){
   curEP=ep;[1,2,3,4].forEach(i=>document.getElementById('ep'+i+'t').classList.toggle('on',i===ep));
   buildShopList();
   try{localStorage.setItem('displayEP',String(ep));}catch(e){}
+  // 推送 EP 更新到 Firebase，讓 display 待機畫面即時更新
+  pushEPUpdate();
+}
+
+function pushEPUpdate(){
+  try{
+    fetch(DB+'/display/ep.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(String(curEP))});
+    fetch(DB+'/display/ts.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(Date.now())});
+  }catch(e){}
 }
 function selPh(ph){
   curPh=ph;
