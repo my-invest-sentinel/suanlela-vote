@@ -312,13 +312,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
       <option>嘉禮慕華</option><option>馨眠</option><option>樸樂咖啡</option><option>安餃子</option>
     </select>
     <select class="sel" id="ulRes">
-      <option value="📱 限動曝光資格">📱 限動曝光資格</option>
-      <option value="📣 社群貼文曝光資格">📣 社群貼文曝光資格</option>
-      <option value="🎬 影廳精華預告資格">🎬 影廳精華預告資格</option>
-      <option value="📺 影廳廣告資格">📺 影廳廣告資格</option>
-      <option value="🤝 實習生協作資格">🤝 實習生協作資格</option>
-      <option value="🎟 票根導流資格">🎟 票根導流資格</option>
-      <option value="🏆 小店生存王資源包">🏆 小店生存王資源包</option>
+      <option value="📱 限動曝光｜100分">📱 限動曝光（100分）</option>
+      <option value="📣 社群貼文介紹｜160分">📣 社群貼文介紹（160分）</option>
+      <option value="🎬 影廳播映｜240分">🎬 影廳播映（240分）</option>
+      <option value="🤝 實習生協作｜300分">🤝 實習生協作（300分）</option>
+      <option value="🏆 戲院會員導流｜360分">🏆 戲院會員導流（360分）</option>
     </select>
     <button class="cb" onclick="dispUnlock()">→ 公布解鎖</button>
   </div>
@@ -602,6 +600,15 @@ function selEP(ep){
   curEP=ep;[1,2,3,4].forEach(i=>document.getElementById('ep'+i+'t').classList.toggle('on',i===ep));
   buildShopList();
   try{localStorage.setItem('displayEP',String(ep));}catch(e){}
+  // 推送 EP 更新到 Firebase，讓 display 待機畫面即時更新
+  pushEPUpdate();
+}
+
+function pushEPUpdate(){
+  try{
+    fetch(DB+'/display/ep.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(String(curEP))});
+    fetch(DB+'/display/ts.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(Date.now())});
+  }catch(e){}
 }
 function selPh(ph){
   curPh=ph;

@@ -264,7 +264,7 @@ function renderSb(scores,ep){
 
 // ── 解鎖資源 ──
 function renderUnlock(shop,res,tot){
-  var im={'限動':'📱','社群貼文':'📣','影廳精':'🎬','影廳廣':'📺','實習':'🤝','票根':'🎟','小店生':'🏆'};
+  var im={'限動':'📱','社群貼文':'📣','影廳播映':'🎬','實習生':'🤝','戲院會員':'🏆'};
   var ico='🎉';
   for(var k in im){if(res.indexOf(k)>=0){ico=im[k];break;}}
   document.getElementById('ul-ico').textContent=ico;
