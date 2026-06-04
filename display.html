@@ -76,7 +76,6 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
 .bar-fill{height:100%;border-radius:7px;display:flex;align-items:center;padding-left:12px;font-size:clamp(13px,1.8vw,22px);font-weight:800;transition:width .9s cubic-bezier(.4,0,.2,1);}
 .bar-pct{font-size:clamp(13px,1.6vw,20px);font-weight:700;color:#333;min-width:48px;text-align:right;}
 .wm{position:absolute;bottom:12px;right:16px;font-size:9px;color:#111;letter-spacing:.12em;}
-.diag{position:fixed;bottom:0;left:0;background:rgba(0,0,0,.85);color:#555;font-size:10px;padding:4px 8px;z-index:999;font-family:monospace;letter-spacing:.03em;pointer-events:none;}
 </style>
 </head>
 <body>
@@ -185,7 +184,6 @@ const ROLES=[{id:'引流品',ico:'🎯'},{id:'主力品',ico:'💰'},{id:'加購
 
 let preRate=null, postRate=null;
 let lastSig='';
-var _lastScreen='';
 let timerData=null;
 
 // ── SHOW SCREEN ──
@@ -296,55 +294,25 @@ function applyTimer(t){
     if(bn) bn.textContent=t.str;
     if(bb) bb.style.width=(pct*100)+'%';
     if(bl) bl.textContent=t.q||'搶！搶！搶！';
-    if(t.buzzSec<=3&&t.buzzSec>0&&typeof soundTick==='function') soundTick();
     return;
   }
   // 一般計時模式
   document.getElementById('tm-big').textContent=t.str;
   document.getElementById('tm-big').className='tm-big'+(cls?' '+cls:'');
   if(t.q)document.getElementById('tm-q').textContent=t.q;
-  // 倒數最後3秒播tick音效（非搶答模式）
-  if(!t.isBuzz && cls==='d' && _soundReady) soundTick();
   const bar=document.getElementById('tm-bar');
   bar.style.width=(pct*100)+'%';
   bar.className='tm-bar'+(cls?' '+cls:'');
 }
 
 // ── MAIN APPLY ──
-function updateDiag(src,screen,ts){
-  var el=document.getElementById('diag');
-  if(!el)return;
-  var now=new Date().toLocaleTimeString();
-  el.textContent=now+' │ '+src+' │ screen:'+screen+' │ ts:'+(ts?String(ts).slice(-6):'—');
-}
-
 function applyState(d){
   if(!d)return;
-  updateDiag(d.ts?'FB':'LS', d.screen||'?', d.ts);
   const sc=d.screen;
   const ep=parseInt(d.ep)||1;
   const shop=d.shop||'';
 
-  if(sc){
-    show(sc); // ← 切換畫面
-    // 音效
-    if(sc!==_lastScreen){
-      _lastScreen=sc;
-      if(sc==='buzz') soundBuzzStart();
-      else if(sc==='vpre'||sc==='vpost') soundReveal();
-      else if(sc==='compare'){
-        setTimeout(function(){
-          var pre=parseFloat((document.getElementById('cm-pre')||{}).textContent)||0;
-          var post=parseFloat((document.getElementById('cm-post')||{}).textContent)||0;
-          if(post-pre>=20) soundWin();
-          else soundNeutral();
-        }, 800);
-      }
-      else if(sc==='token') soundToken();
-      else if(sc==='unlock'){ soundUnlock(); setTimeout(soundSparkle, 1200); }
-      else if(sc==='scoreboard') soundReveal();
-    }
-  }
+  if(sc) show(sc);
 
   // EP labels
   document.getElementById('sb-ep').textContent=EP_LABELS[ep-1];
@@ -430,37 +398,60 @@ function renderBuzzList(list){
 
 // ── POLL ──
 function poll(){
-  // 每300ms從Firebase讀一次，強制更新畫面
-  localStorage.removeItem('displayScreen');
+  // Firebase 路徑
   fetch(DB+'/display.json')
-    .then(function(r){return r.json();})
-    .then(function(d){
-      if(d&&d.screen){
-        applyState(d);
-        updateDiag('FB',d.screen,d.ts);
-        if(d.timer){try{applyTimer(JSON.parse(d.timer));}catch(e2){}}
+    .then(function(res){return res.json();})
+    .then(function(fbData){
+      var lsScreen=localStorage.getItem('displayScreen');
+      var lsTs=parseInt(localStorage.getItem('displayTs')||'0');
+      var fbTs=fbData?fbData.ts||0:0;
+
+      if(fbTs>=lsTs&&fbData&&fbData.screen){
+        applyState(fbData);
+      } else if(lsScreen){
+        applyState({
+          screen:lsScreen,
+          ep:localStorage.getItem('displayEP')||'1',
+          ph:localStorage.getItem('displayPh')||'pre',
+          shop:localStorage.getItem('curShop')||'',
+          scores:localStorage.getItem('shopScores'),
+          unlock:localStorage.getItem('unlockInfo'),
+          cmpShop:localStorage.getItem('compareShop')||'',
+          cmpData:localStorage.getItem('compareData'),
+          vd:localStorage.getItem('vd'),
+          buzzList:localStorage.getItem('buzzList'),
+        });
       }
-      // timer 備用 localStorage
-      var tRaw=localStorage.getItem('timer');
-      if(tRaw){try{applyTimer(JSON.parse(tRaw));}catch(e2){}}
+
+      // Timer
+      var fbTimerRaw=fbData&&fbData.timer?fbData.timer:null;
+      var lsTimerRaw=localStorage.getItem('timer');
+      var tRaw=fbTimerRaw||lsTimerRaw;
+      if(tRaw){try{applyTimer(JSON.parse(tRaw));}catch(e){}}
     })
     .catch(function(){
-      updateDiag('ERR','連線失敗','—');
+      // Firebase 失敗時用 localStorage
+      var lsScreen=localStorage.getItem('displayScreen');
+      if(lsScreen){
+        applyState({
+          screen:lsScreen,
+          ep:localStorage.getItem('displayEP')||'1',
+          ph:localStorage.getItem('displayPh')||'pre',
+          shop:localStorage.getItem('curShop')||'',
+          scores:localStorage.getItem('shopScores'),
+          unlock:localStorage.getItem('unlockInfo'),
+          cmpShop:localStorage.getItem('compareShop')||'',
+          cmpData:localStorage.getItem('compareData'),
+          vd:localStorage.getItem('vd'),
+          buzzList:localStorage.getItem('buzzList'),
+        });
+      }
+      var tRaw=localStorage.getItem('timer');
+      if(tRaw){try{applyTimer(JSON.parse(tRaw));}catch(e){}}
     });
 }
-
-var _soundReady=false;
-function initSound(){
-  if(_soundReady)return;
-  _soundReady=true;
-  if(typeof getAC==='function') getAC();
-}
-document.addEventListener('click',initSound,{once:true});
-document.addEventListener('touchstart',initSound,{once:true});
-
-setInterval(poll,300);
+setInterval(poll,800);
 poll();
 </script>
-<div class="diag" id="diag">連線中…</div>
 </body>
 </html>
