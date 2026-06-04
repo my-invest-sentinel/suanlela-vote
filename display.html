@@ -184,6 +184,7 @@ const ROLES=[{id:'引流品',ico:'🎯'},{id:'主力品',ico:'💰'},{id:'加購
 
 let preRate=null, postRate=null;
 let lastSig='';
+var _lastScreen='';
 let timerData=null;
 
 // ── SHOW SCREEN ──
@@ -294,12 +295,15 @@ function applyTimer(t){
     if(bn) bn.textContent=t.str;
     if(bb) bb.style.width=(pct*100)+'%';
     if(bl) bl.textContent=t.q||'搶！搶！搶！';
+    if(t.buzzSec<=3&&t.buzzSec>0&&typeof soundTick==='function') soundTick();
     return;
   }
   // 一般計時模式
   document.getElementById('tm-big').textContent=t.str;
   document.getElementById('tm-big').className='tm-big'+(cls?' '+cls:'');
   if(t.q)document.getElementById('tm-q').textContent=t.q;
+  // 倒數最後3秒播tick音效（非搶答模式）
+  if(!t.isBuzz && cls==='d' && _soundReady) soundTick();
   const bar=document.getElementById('tm-bar');
   bar.style.width=(pct*100)+'%';
   bar.className='tm-bar'+(cls?' '+cls:'');
@@ -312,7 +316,26 @@ function applyState(d){
   const ep=parseInt(d.ep)||1;
   const shop=d.shop||'';
 
-  if(sc) show(sc);
+  if(sc){
+    // 根據畫面切換播放對應音效
+    if(sc!==_lastScreen){
+      _lastScreen=sc;
+      if(sc==='buzz') soundBuzzStart();
+      else if(sc==='vpre'||sc==='vpost') soundReveal();
+      else if(sc==='compare'){
+        // 延遲播，等畫面渲染後再看進步幅度
+        setTimeout(function(){
+          var pre=parseFloat((document.getElementById('cm-pre')||{}).textContent)||0;
+          var post=parseFloat((document.getElementById('cm-post')||{}).textContent)||0;
+          if(post-pre>=20) soundWin();
+          else soundNeutral();
+        }, 800);
+      }
+      else if(sc==='token') soundToken();
+      else if(sc==='unlock'){ soundUnlock(); setTimeout(soundSparkle, 1200); }
+      else if(sc==='scoreboard') soundReveal();
+    }
+  }
 
   // EP labels
   document.getElementById('sb-ep').textContent=EP_LABELS[ep-1];
@@ -450,6 +473,152 @@ function poll(){
       if(tRaw){try{applyTimer(JSON.parse(tRaw));}catch(e){}}
     });
 }
+// ══ 音效系統（Web Audio API，不需要音檔）══
+var _ac = null;
+function getAC(){
+  if(!_ac) _ac = new (window.AudioContext||window.webkitAudioContext)();
+  if(_ac.state==='suspended') _ac.resume();
+  return _ac;
+}
+
+// 基礎音符播放
+function playTone(freq, dur, vol, type, startTime, ac){
+  var o = ac.createOscillator();
+  var g = ac.createGain();
+  o.connect(g); g.connect(ac.destination);
+  o.type = type||'sine';
+  o.frequency.setValueAtTime(freq, startTime);
+  g.gain.setValueAtTime(vol||0.3, startTime);
+  g.gain.exponentialRampToValueAtTime(0.001, startTime+dur);
+  o.start(startTime);
+  o.stop(startTime+dur+0.05);
+}
+
+// 1. 搶答開始：緊張電子音（快速上升音階）
+function soundBuzzStart(){
+  var ac=getAC(), t=ac.currentTime;
+  var freqs=[220,277,330,415,523,659,880];
+  freqs.forEach(function(f,i){
+    playTone(f, 0.12, 0.25, 'sawtooth', t+i*0.07, ac);
+  });
+  // 底層持續低頻脈衝
+  for(var i=0;i<8;i++){
+    playTone(55, 0.08, 0.15, 'square', t+i*0.12, ac);
+  }
+}
+
+// 2. 倒數最後3秒：tick-tock 急促
+function soundTick(){
+  var ac=getAC(), t=ac.currentTime;
+  playTone(1200, 0.05, 0.3, 'square', t, ac);
+  playTone(800, 0.05, 0.2, 'square', t+0.03, ac);
+}
+
+// 3. 搶答有人按下：成功叮！
+function soundBuzzHit(){
+  var ac=getAC(), t=ac.currentTime;
+  playTone(880, 0.05, 0.4, 'sine', t, ac);
+  playTone(1320, 0.08, 0.3, 'sine', t+0.04, ac);
+  playTone(1760, 0.15, 0.25, 'sine', t+0.08, ac);
+}
+
+// 4. 市場率揭曉：懸疑→揭曉
+function soundReveal(){
+  var ac=getAC(), t=ac.currentTime;
+  // 懸疑上升
+  var o=ac.createOscillator(), g=ac.createGain();
+  o.connect(g); g.connect(ac.destination);
+  o.type='sawtooth';
+  o.frequency.setValueAtTime(110, t);
+  o.frequency.exponentialRampToValueAtTime(440, t+0.8);
+  g.gain.setValueAtTime(0.15, t);
+  g.gain.setValueAtTime(0.15, t+0.7);
+  g.gain.exponentialRampToValueAtTime(0.001, t+0.9);
+  o.start(t); o.stop(t+1);
+  // 揭曉和弦
+  [523,659,784].forEach(function(f,i){
+    playTone(f, 0.6, 0.2, 'sine', t+0.9+i*0.06, ac);
+  });
+}
+
+// 5. 前後對比→進步大：勝利音效
+function soundWin(){
+  var ac=getAC(), t=ac.currentTime;
+  var melody=[523,659,784,1047,784,1047,1319];
+  melody.forEach(function(f,i){
+    playTone(f, 0.18, 0.3, 'sine', t+i*0.14, ac);
+  });
+  // 和聲
+  var harmony=[392,523,659,784];
+  harmony.forEach(function(f,i){
+    playTone(f, 0.5, 0.15, 'triangle', t+melody.length*0.14+0.05, ac);
+  });
+}
+
+// 5b. 前後對比→進步小：平靜結束音
+function soundNeutral(){
+  var ac=getAC(), t=ac.currentTime;
+  [392,494,587].forEach(function(f,i){
+    playTone(f, 0.4, 0.15, 'sine', t+i*0.15, ac);
+  });
+}
+
+// 6. 籌碼結果：硬幣落下＋統計音
+function soundToken(){
+  var ac=getAC(), t=ac.currentTime;
+  // 硬幣聲（高頻短促）
+  for(var i=0;i<5;i++){
+    var freq=1800+Math.random()*400;
+    playTone(freq, 0.04+Math.random()*0.03, 0.2, 'sine', t+i*0.08+Math.random()*0.03, ac);
+  }
+  // 統計音（上升滾動）
+  for(var j=0;j<6;j++){
+    playTone(220+j*80, 0.1, 0.15, 'triangle', t+0.5+j*0.1, ac);
+  }
+}
+
+// 7. 解鎖資源：開門＋慶祝
+function soundUnlock(){
+  var ac=getAC(), t=ac.currentTime;
+  // 開門聲（低頻掃頻）
+  var o=ac.createOscillator(), g=ac.createGain();
+  o.connect(g); g.connect(ac.destination);
+  o.type='sine';
+  o.frequency.setValueAtTime(80, t);
+  o.frequency.exponentialRampToValueAtTime(320, t+0.3);
+  g.gain.setValueAtTime(0.3, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t+0.4);
+  o.start(t); o.stop(t+0.5);
+  // 慶祝音階
+  var cel=[523,659,784,1047,1319,1047,784,1047,1319];
+  cel.forEach(function(f,i){
+    playTone(f, 0.16, 0.25, 'sine', t+0.3+i*0.11, ac);
+  });
+  // 光澤感高音
+  playTone(2093, 0.8, 0.1, 'sine', t+0.35, ac);
+  playTone(2637, 0.6, 0.08, 'sine', t+0.5, ac);
+}
+
+// 解鎖後持續的星光閃爍音
+function soundSparkle(){
+  var ac=getAC(), t=ac.currentTime;
+  var notes=[2093,2349,2637,3136,2637,2349];
+  notes.forEach(function(f,i){
+    playTone(f, 0.08, 0.06, 'sine', t+i*0.18, ac);
+  });
+}
+
+// 初始化：使用者第一次點擊時解鎖 AudioContext
+var _soundReady=false;
+function initSound(){
+  if(_soundReady) return;
+  _soundReady=true;
+  getAC();
+}
+document.addEventListener('click', initSound, {once:true});
+document.addEventListener('touchstart', initSound, {once:true});
+
+
 setInterval(poll,800);
 poll();
 </script>
