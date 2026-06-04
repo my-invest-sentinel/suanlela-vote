@@ -327,25 +327,22 @@ function applyState(d){
 
   if(sc){
     show(sc); // ← 切換畫面
-    // 音效：只在 ts 改變時播（代表操作員按了新按鈕）
-    var newSig=(d.ts||'')+'|'+sc;
-    if(newSig!==_lastScreen){
-      _lastScreen=newSig;
-      if(_soundReady){
-        if(sc==='buzz') soundBuzzStart();
-        else if(sc==='vpre'||sc==='vpost') soundReveal();
-        else if(sc==='compare'){
-          setTimeout(function(){
-            var pre=parseFloat((document.getElementById('cm-pre')||{}).textContent)||0;
-            var post=parseFloat((document.getElementById('cm-post')||{}).textContent)||0;
-            if(post-pre>=20) soundWin();
-            else soundNeutral();
-          }, 800);
-        }
-        else if(sc==='token') soundToken();
-        else if(sc==='unlock'){ soundUnlock(); setTimeout(soundSparkle, 1200); }
-        else if(sc==='scoreboard') soundReveal();
+    // 音效
+    if(sc!==_lastScreen){
+      _lastScreen=sc;
+      if(sc==='buzz') soundBuzzStart();
+      else if(sc==='vpre'||sc==='vpost') soundReveal();
+      else if(sc==='compare'){
+        setTimeout(function(){
+          var pre=parseFloat((document.getElementById('cm-pre')||{}).textContent)||0;
+          var post=parseFloat((document.getElementById('cm-post')||{}).textContent)||0;
+          if(post-pre>=20) soundWin();
+          else soundNeutral();
+        }, 800);
       }
+      else if(sc==='token') soundToken();
+      else if(sc==='unlock'){ soundUnlock(); setTimeout(soundSparkle, 1200); }
+      else if(sc==='scoreboard') soundReveal();
     }
   }
 
