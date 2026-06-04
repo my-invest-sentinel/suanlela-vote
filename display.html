@@ -430,75 +430,36 @@ function renderBuzzList(list){
 
 // ── POLL ──
 function poll(){
-  // 保留給 timer 即時更新用
-  var tRaw=localStorage.getItem('timer');
-  if(tRaw){try{applyTimer(JSON.parse(tRaw));}catch(e){}}
-}
-
-// ── Firebase 即時監聽（取代輪詢，延遲降到 100ms 以內）──
-function startRealtimeListener(){
-  var url=DB+'/display.json';
-  // 用 EventSource (SSE) 取代輪詢
-  // Firebase Realtime DB 支援 text/event-stream
-  var es=new EventSource(url+('?accept=text/event-stream'));
-  es.addEventListener('put',function(e){
-    try{
-      var payload=JSON.parse(e.data);
-      var d=payload.data;
+  // 每300ms從Firebase讀一次，強制更新畫面
+  localStorage.removeItem('displayScreen');
+  fetch(DB+'/display.json')
+    .then(function(r){return r.json();})
+    .then(function(d){
       if(d&&d.screen){
         applyState(d);
-        // timer 也從 Firebase 拿
+        updateDiag('FB',d.screen,d.ts);
         if(d.timer){try{applyTimer(JSON.parse(d.timer));}catch(e2){}}
       }
-    }catch(err){}
-  });
-  es.addEventListener('patch',function(e){
-    try{
-      var payload=JSON.parse(e.data);
-      var d=payload.data;
-      if(d){
-        // patch 只有部分欄位，需要重新 fetch 完整資料
-        fetch(DB+'/display.json')
-          .then(function(r){return r.json();})
-          .then(function(full){
-            if(full&&full.screen){
-              applyState(full);
-              if(full.timer){try{applyTimer(JSON.parse(full.timer));}catch(e2){}}
-            }
-          }).catch(function(){});
-      }
-    }catch(err){}
-  });
-  es.onerror=function(){
-    // SSE 失敗時降級為輪詢
-    es.close();
-    console.log('SSE 失敗，改用輪詢');
-    setInterval(function(){
-      fetch(DB+'/display.json')
-        .then(function(r){return r.json();})
-        .then(function(d){
-          if(d&&d.screen){
-            applyState(d);
-            localStorage.removeItem('displayScreen');
-            if(d.timer){try{applyTimer(JSON.parse(d.timer));}catch(e2){}}
-          }
-        }).catch(function(){});
-    },1000);
-  };
+      // timer 備用 localStorage
+      var tRaw=localStorage.getItem('timer');
+      if(tRaw){try{applyTimer(JSON.parse(tRaw));}catch(e2){}}
+    })
+    .catch(function(){
+      updateDiag('ERR','連線失敗','—');
+    });
 }
 
-// 初始化：先 fetch 一次拿目前狀態，再啟動即時監聽
-fetch(DB+'/display.json')
-  .then(function(r){return r.json();})
-  .then(function(d){
-    localStorage.removeItem('displayScreen');
-    if(d&&d.screen) applyState(d);
-    updateDiag('FB',d?d.screen:'—',d?d.ts:'—');
-  })
-  .catch(function(){updateDiag('ERR','連線失敗','—');});
+var _soundReady=false;
+function initSound(){
+  if(_soundReady)return;
+  _soundReady=true;
+  if(typeof getAC==='function') getAC();
+}
+document.addEventListener('click',initSound,{once:true});
+document.addEventListener('touchstart',initSound,{once:true});
 
-startRealtimeListener();
-setInterval(poll,500);  // timer 仍用輪詢保持即時
+setInterval(poll,300);
+poll();
 </script>
 <div class="diag" id="diag">連線中…</div>
 </body>
