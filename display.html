@@ -13,7 +13,7 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
 /* Standby */
 .sb-yr{font-size:11px;letter-spacing:.25em;color:#222;margin-bottom:18px;}
 .sb-main{font-size:clamp(38px,6.5vw,76px);font-weight:900;line-height:1.18;text-align:center;}
-.sb-ep{font-size:clamp(14px,2.2vw,26px);color:#444;margin-top:8px;letter-spacing:.05em;}
+.sb-ep{font-size:clamp(14px,2.2vw,26px);color:#444;margin-top:8px;}
 .sb-line{width:60px;height:1px;background:#1a1a1a;margin:22px auto;}
 .sb-cr{font-size:10px;color:#222;letter-spacing:.14em;}
 /* Timer */
@@ -57,7 +57,7 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
 /* Scoreboard */
 .sbd-t{font-size:clamp(16px,2.6vw,32px);font-weight:800;margin-bottom:20px;}
 .sbd-tbl{width:86vw;max-width:940px;}
-.sbd-hd{display:grid;grid-template-columns:1fr 68px 68px 68px 68px 88px;gap:5px;padding:8px 14px;background:#0e0e0e;border-radius:5px;font-size:10px;color:#2a2a2a;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;}
+.sbd-hd{display:grid;grid-template-columns:1fr 68px 68px 68px 68px 88px;gap:5px;padding:8px 14px;background:#0e0e0e;border-radius:5px;font-size:10px;color:#2a2a2a;text-transform:uppercase;margin-bottom:3px;}
 .sbd-dr{display:grid;grid-template-columns:1fr 68px 68px 68px 68px 88px;gap:5px;padding:9px 14px;background:#0a0a0a;border:1px solid #111;border-radius:5px;margin-bottom:3px;align-items:center;}
 .sbd-nm{color:#EAE7E0;font-weight:600;font-size:clamp(12px,1.6vw,17px);}
 .sbd-n{text-align:center;color:#2a2a2a;font-size:clamp(12px,1.6vw,17px);}
@@ -68,7 +68,16 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
 .ul-vb{font-size:clamp(12px,1.8vw,22px);color:#333;margin-bottom:10px;}
 .ul-res{font-size:clamp(28px,5.5vw,70px);font-weight:900;color:var(--Yl);text-align:center;line-height:1.2;}
 .ul-sc{font-size:clamp(12px,1.8vw,22px);color:#222;margin-top:18px;}
-/* Generic bar list (token/role) */
+/* Buzz */
+.buzz-lbl{font-size:clamp(20px,3vw,36px);color:#888;margin-bottom:16px;letter-spacing:.1em;}
+.buzz-big{font-size:clamp(100px,22vw,280px);font-weight:900;line-height:1;color:#E74C3C;}
+.buzz-big.w{color:var(--Yl);}.buzz-big.d{color:var(--Rl);animation:dp .5s infinite alternate;}
+.buzz-tag{font-size:clamp(24px,4vw,52px);font-weight:800;color:#E74C3C;margin-top:28px;letter-spacing:.08em;}
+/* Buzzlist */
+.bl-title{font-size:clamp(18px,3vw,36px);font-weight:800;margin-bottom:32px;}
+.bl-rows{display:flex;flex-direction:column;gap:12px;width:60vw;max-width:560px;}
+.bl-row{display:flex;align-items:center;gap:16px;padding:14px 24px;background:#0e0e0e;border-radius:10px;border:1px solid #1a1a1a;}
+/* Bar list (token/role) */
 .bar-list{width:72vw;max-width:680px;display:flex;flex-direction:column;gap:10px;margin-top:16px;}
 .bar-row{display:flex;align-items:center;gap:14px;}
 .bar-lbl{width:130px;text-align:right;font-size:clamp(12px,1.8vw,20px);font-weight:600;color:#EAE7E0;flex-shrink:0;}
@@ -76,9 +85,11 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
 .bar-fill{height:100%;border-radius:7px;display:flex;align-items:center;padding-left:12px;font-size:clamp(13px,1.8vw,22px);font-weight:800;transition:width .9s cubic-bezier(.4,0,.2,1);}
 .bar-pct{font-size:clamp(13px,1.6vw,20px);font-weight:700;color:#333;min-width:48px;text-align:right;}
 .wm{position:absolute;bottom:12px;right:16px;font-size:9px;color:#111;letter-spacing:.12em;}
+.diag{position:fixed;bottom:0;left:0;background:rgba(0,0,0,.8);color:#444;font-size:10px;padding:3px 8px;z-index:999;font-family:monospace;}
 </style>
 </head>
 <body>
+
 <div class="screen on" id="sc-standby">
   <div class="sb-yr">南投戲院　EST. 1921</div>
   <div class="sb-main">《算了啦！老闆》<br>南投開店生存戰</div>
@@ -87,12 +98,14 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
   <div class="sb-cr">國家發展委員會　指導單位　｜　南投戲院 × 好戲文化工作室</div>
   <div class="wm">NANTOU THEATER</div>
 </div>
+
 <div class="screen" id="sc-timer">
   <div class="tm-q" id="tm-q">請用一句話說清楚你是誰</div>
   <div class="tm-big" id="tm-big">20</div>
   <div class="tm-bar-w"><div class="tm-bar" id="tm-bar" style="width:100%"></div></div>
   <div class="wm">NANTOU THEATER</div>
 </div>
+
 <div class="screen" id="sc-vpre">
   <div class="vt-t" id="vt-pre-t">前測市場反應</div>
   <div class="vt-s" id="vt-pre-s">觀眾第一次聽完的直覺反應</div>
@@ -104,6 +117,7 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
   <div class="vt-rate"><div class="vt-rl">市場率</div><div class="vt-rn" id="preRD">—</div></div>
   <div class="wm">NANTOU THEATER</div>
 </div>
+
 <div class="screen" id="sc-vpost">
   <div class="vt-t" id="vt-post-t">後測市場反應</div>
   <div class="vt-s">導師急救後的市場反應</div>
@@ -115,6 +129,7 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
   <div class="vt-rate"><div class="vt-rl">市場率</div><div class="vt-rn" id="postRD">—</div><div class="vt-rl" id="postRSub" style="margin-top:4px;"></div></div>
   <div class="wm">NANTOU THEATER</div>
 </div>
+
 <div class="screen" id="sc-compare">
   <div class="cm-shop" id="cm-shop">前後對比</div>
   <div class="cm-cols">
@@ -126,6 +141,7 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
   <div class="cm-level" id="cm-level">—</div>
   <div class="wm">NANTOU THEATER</div>
 </div>
+
 <div class="screen" id="sc-scoreboard">
   <div class="sbd-t" id="sbd-t">生存值榜</div>
   <div class="sbd-tbl">
@@ -134,18 +150,35 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
   </div>
   <div class="wm">NANTOU THEATER</div>
 </div>
+
 <div class="screen" id="sc-token">
   <div class="vt-t">EP2｜市場籌碼結果</div>
   <div class="vt-s">誰獲得最多消費意願？</div>
   <div class="bar-list" id="token-bars"></div>
   <div class="wm">NANTOU THEATER</div>
 </div>
+
 <div class="screen" id="sc-role">
   <div class="vt-t" id="role-title">EP4｜商品角色判定</div>
-  <div class="vt-s" id="role-sub">觀眾認為這個商品的角色是？</div>
+  <div class="vt-s">觀眾認為這個商品的角色是？</div>
   <div class="bar-list" id="role-bars"></div>
   <div class="wm">NANTOU THEATER</div>
 </div>
+
+<div class="screen" id="sc-buzz">
+  <div class="buzz-lbl">BUZZ IN！搶答開始</div>
+  <div class="buzz-big" id="buzz-num">10</div>
+  <div class="tm-bar-w" style="margin-top:20px;"><div class="tm-bar" id="buzz-bar" style="width:100%;background:#E74C3C;"></div></div>
+  <div class="buzz-tag" id="buzz-tag">搶！搶！搶！</div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+
+<div class="screen" id="sc-buzzlist">
+  <div class="bl-title">本輪回答店家</div>
+  <div class="bl-rows" id="bl-rows"></div>
+  <div class="wm">NANTOU THEATER</div>
+</div>
+
 <div class="screen" id="sc-unlock">
   <div class="ul-ico" id="ul-ico">🎉</div>
   <div class="ul-shop" id="ul-shop">店家</div>
@@ -154,304 +187,301 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
   <div class="ul-sc" id="ul-sc">累積生存值 — 點</div>
   <div class="wm">NANTOU THEATER</div>
 </div>
-<!-- 搶答畫面 -->
-<div class="screen" id="sc-buzz">
-  <div style="text-align:center;">
-    <div style="font-size:clamp(20px,3vw,36px);color:#888;margin-bottom:16px;letter-spacing:.1em;">BUZZ IN！搶答開始</div>
-    <div class="tm-big" id="buzz-num" style="color:#E74C3C;">10</div>
-    <div class="tm-bar-w" style="margin-top:20px;"><div class="tm-bar" id="buzz-bar" style="width:100%;background:#E74C3C;"></div></div>
-    <div style="font-size:clamp(24px,4vw,52px);font-weight:800;color:#E74C3C;margin-top:28px;letter-spacing:.08em;" id="buzz-label">搶！搶！搶！</div>
-  </div>
-  <div class="wm">NANTOU THEATER</div>
-</div>
-
-<!-- 本輪回答名單 -->
-<div class="screen" id="sc-buzzlist">
-  <div style="font-size:clamp(18px,3vw,36px);font-weight:800;text-align:center;margin-bottom:32px;">本輪回答店家</div>
-  <div id="buzzlist-rows" style="display:flex;flex-direction:column;gap:12px;width:60vw;max-width:560px;"></div>
-  <div class="wm">NANTOU THEATER</div>
-</div>
 
 <div class="screen" id="sc-black" style="background:#000;"></div>
 
+<div class="diag" id="diag">連線中…</div>
+
 <script>
-const DB='https://suanlela-vote-default-rtdb.firebaseio.com';
-const EP_LABELS=['EP1｜品牌定位戰','EP2｜商業模式戰','EP3｜品牌行銷戰','EP4｜商品營運戰'];
-const EP_VT=['品牌定位｜市場理解度','商業模式｜消費意願','品牌行銷｜內容留存率','商品營運｜購買意願'];
-const EP_VS=['觀眾聽完後的直覺反應','觀眾了解商業路徑後的反應','觀眾看完行銷內容後的反應','觀眾聽完商品介紹後的反應'];
-const SHOPS=['靜日香研','胖昇','新協泰米行','九尖茶廠','波嶼','紙布家','嘉禮慕華','馨眠','樸樂咖啡','安餃子'];
-const ROLES=[{id:'引流品',ico:'🎯'},{id:'主力品',ico:'💰'},{id:'加購品',ico:'➕'},{id:'回購品',ico:'🔄'},{id:'形象品',ico:'✨'}];
+var DB='https://suanlela-vote-default-rtdb.firebaseio.com';
+var EP_LABELS=['EP1｜品牌定位戰','EP2｜商業模式戰','EP3｜品牌行銷戰','EP4｜商品營運戰'];
+var EP_VT=['品牌定位｜市場理解度','商業模式｜消費意願','品牌行銷｜內容留存率','商品營運｜購買意願'];
+var EP_VS=['觀眾聽完後的直覺反應','觀眾了解商業路徑後的反應','觀眾看完行銷內容後的反應','觀眾聽完商品介紹後的反應'];
+var SHOPS=['靜日香研','胖昇','新協泰米行','九尖茶廠','波嶼','紙布家','嘉禮慕華','馨眠','樸樂咖啡','安餃子'];
+var ROLES=[{id:'引流品',ico:'🎯'},{id:'主力品',ico:'💰'},{id:'加購品',ico:'➕'},{id:'回購品',ico:'🔄'},{id:'形象品',ico:'✨'}];
 
-let preRate=null, postRate=null;
-let lastSig='';
-let timerData=null;
+var preRate=null, postRate=null;
+var lastTs=0; // 上次處理的 Firebase ts，用來判斷是否要播音效
 
-// ── SHOW SCREEN ──
+// ── 切換畫面 ──
 function show(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
-  const el=document.getElementById('sc-'+id);
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});
+  var el=document.getElementById('sc-'+id);
   if(el) el.classList.add('on');
 }
 
-// ── VOTE BARS ──
+// ── 投票長條圖 ──
 function setBar(fid,pid,pct,n){
-  const fe=document.getElementById(fid);const pe=document.getElementById(pid);
+  var fe=document.getElementById(fid);
+  var pe=document.getElementById(pid);
   if(fe){fe.style.width=Math.max(pct>0?5:0,pct)+'%';fe.textContent=n;}
-  if(pe)pe.textContent=Math.round(pct)+'%';
+  if(pe) pe.textContent=Math.round(pct)+'%';
 }
 function renderVote(isPre,r,y,g,rate){
-  const tot=r+y+g;
-  const rp=tot?r/tot*100:0,yp=tot?y/tot*100:0,gp=tot?g/tot*100:0;
-  const p=isPre?'pr':'po';
-  setBar(p+'R',p+'Rp',rp,r);setBar(p+'Y',p+'Yp',yp,y);setBar(p+'G',p+'Gp',gp,g);
+  var tot=r+y+g;
+  var rp=tot?r/tot*100:0,yp=tot?y/tot*100:0,gp=tot?g/tot*100:0;
+  var p=isPre?'pr':'po';
+  setBar(p+'R',p+'Rp',rp,r);
+  setBar(p+'Y',p+'Yp',yp,y);
+  setBar(p+'G',p+'Gp',gp,g);
   document.getElementById(isPre?'preRD':'postRD').textContent=rate!==null?rate+'%':'—';
   if(!isPre&&preRate!==null&&rate!==null){
     document.getElementById('postRSub').textContent='前測 '+preRate+'%　→　後測 '+rate+'%';
   }
 }
 
-// ── COMPARE ──
+// ── 前後對比 ──
 function renderCompare(pre,post,shopName){
   document.getElementById('cm-shop').textContent=(shopName||'')+'　前後對比';
   document.getElementById('cm-pre').textContent=pre!==null?pre+'%':'—';
   document.getElementById('cm-post').textContent=post!==null?post+'%':'—';
   if(pre!==null&&post!==null){
-    const diff=Math.round((post-pre)*10)/10;
+    var diff=Math.round((post-pre)*10)/10;
     document.getElementById('cm-diff').textContent=diff>=0?'提升 '+diff+' 個百分點':'退步 '+Math.abs(diff)+' 個百分點';
-    const ps=diff>=40?70:diff>=30?60:diff>=20?50:diff>=10?35:diff>=1?20:0;
-    let tx='需要回診',cls='lv-e';
+    var ps=diff>=40?70:diff>=30?60:diff>=20?50:diff>=10?35:diff>=1?20:0;
+    var tx='需要回診',cls='lv-e';
     if(ps>=60){tx='急救成功 🎉';cls='lv-a';}
     else if(ps>=50){tx='明顯好轉 ✓';cls='lv-b';}
     else if(ps>=35){tx='暫時穩住';cls='lv-c';}
     else if(ps>=20){tx='持續觀察';cls='lv-d';}
-    const lv=document.getElementById('cm-level');lv.textContent=tx;lv.className='cm-level '+cls;
+    var lv=document.getElementById('cm-level');
+    lv.textContent=tx;lv.className='cm-level '+cls;
   }
 }
 
-// ── SCOREBOARD ──
+// ── 分數榜 ──
 function renderSb(scores,ep){
   document.getElementById('sbd-t').textContent=EP_LABELS[ep-1]+' 生存值榜';
-  const wrap=document.getElementById('sbd-rows');wrap.innerHTML='';
-  SHOPS.forEach(s=>{
-    const sc=scores[s]||[0,0,0,0];const tot=sc.reduce((a,b)=>a+(+b||0),0);
-    const dr=document.createElement('div');dr.className='sbd-dr';
-    dr.innerHTML=`<div class="sbd-nm">${s}</div>${sc.map(v=>`<div class="sbd-n">${v||'—'}</div>`).join('')}<div class="sbd-tot">${tot||'—'}</div>`;
+  var wrap=document.getElementById('sbd-rows');wrap.innerHTML='';
+  SHOPS.forEach(function(s){
+    var sc=scores[s]||[0,0,0,0];
+    var tot=sc.reduce(function(a,b){return a+(+b||0);},0);
+    var dr=document.createElement('div');dr.className='sbd-dr';
+    dr.innerHTML='<div class="sbd-nm">'+s+'</div>'+sc.map(function(v){return '<div class="sbd-n">'+(v||'—')+'</div>';}).join('')+'<div class="sbd-tot">'+(tot||'—')+'</div>';
     wrap.appendChild(dr);
   });
 }
 
-// ── UNLOCK ──
+// ── 解鎖資源 ──
 function renderUnlock(shop,res,tot){
-  const im={'限動':'📱','社群貼文':'📣','影廳精':'🎬','影廳廣':'📺','實習':'🤝','票根':'🎟','小店生':'🏆'};
-  let ico='🎉';for(const[k,v] of Object.entries(im)){if(res.includes(k)){ico=v;break;}}
-  document.getElementById('ul-ico').textContent=ico;document.getElementById('ul-shop').textContent=shop;
-  document.getElementById('ul-res').textContent=res;document.getElementById('ul-sc').textContent='累積生存值 '+tot+' 點';
+  var im={'限動':'📱','社群貼文':'📣','影廳精':'🎬','影廳廣':'📺','實習':'🤝','票根':'🎟','小店生':'🏆'};
+  var ico='🎉';
+  for(var k in im){if(res.indexOf(k)>=0){ico=im[k];break;}}
+  document.getElementById('ul-ico').textContent=ico;
+  document.getElementById('ul-shop').textContent=shop;
+  document.getElementById('ul-res').textContent=res;
+  document.getElementById('ul-sc').textContent='累積生存值 '+tot+' 點';
 }
 
-// ── TOKEN ──
+// ── 籌碼結果 ──
 function renderToken(votes){
-  const counts={};
-  Object.values(votes||{}).forEach(v=>{if(v.choice)counts[v.choice]=(counts[v.choice]||0)+1;});
-  const total=Object.values(counts).reduce((a,b)=>a+b,0)||1;
-  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-  const wrap=document.getElementById('token-bars');wrap.innerHTML='';
-  sorted.forEach(([shop,cnt],i)=>{
-    const pct=Math.round(cnt/total*100);
-    const row=document.createElement('div');row.className='bar-row';
-    row.innerHTML=`<div class="bar-lbl">${shop}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(pct>0?5:0,pct)}%;background:${i===0?'linear-gradient(90deg,#7A5800,#E2A800)':'linear-gradient(90deg,#1a1a1a,#333)'};color:${i===0?'#000':'#666'};">${cnt}</div></div>
-      <div class="bar-pct">${pct}%</div>`;
+  var counts={};
+  var vals=Object.values?Object.values(votes||{}):(function(o){var a=[];for(var k in o)a.push(o[k]);return a;})(votes||{});
+  vals.forEach(function(v){if(v.choice)counts[v.choice]=(counts[v.choice]||0)+1;});
+  var total=Object.keys(counts).reduce(function(a,k){return a+counts[k];},0)||1;
+  var sorted=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a];});
+  var wrap=document.getElementById('token-bars');wrap.innerHTML='';
+  sorted.forEach(function(shop,i){
+    var cnt=counts[shop];var pct=Math.round(cnt/total*100);
+    var row=document.createElement('div');row.className='bar-row';
+    row.innerHTML='<div class="bar-lbl">'+shop+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(pct>0?5:0,pct)+'%;background:'+(i===0?'linear-gradient(90deg,#7A5800,#E2A800)':'linear-gradient(90deg,#1a1a1a,#333)')+';color:'+(i===0?'#000':'#666')+';">'+cnt+'</div></div><div class="bar-pct">'+pct+'%</div>';
     wrap.appendChild(row);
   });
 }
 
-// ── ROLE ──
+// ── 五角色結果 ──
 function renderRole(votes,shopName){
-  const counts={};ROLES.forEach(r=>counts[r.id]=0);
-  Object.values(votes||{}).forEach(v=>{if(v.choice&&counts[v.choice]!==undefined)counts[v.choice]++;});
-  const total=Object.values(counts).reduce((a,b)=>a+b,0)||1;
-  if(shopName)document.getElementById('role-title').textContent='EP4｜'+shopName+'　商品角色判定';
-  const wrap=document.getElementById('role-bars');wrap.innerHTML='';
-  ROLES.forEach(r=>{
-    const cnt=counts[r.id]||0;const pct=Math.round(cnt/total*100);
-    const row=document.createElement('div');row.className='bar-row';
-    row.innerHTML=`<div class="bar-lbl">${r.ico} ${r.id}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(pct>0?5:0,pct)}%;background:linear-gradient(90deg,#1A3A5C,#3498DB);color:#fff;">${cnt}</div></div>
-      <div class="bar-pct">${pct}%</div>`;
+  var counts={};
+  ROLES.forEach(function(r){counts[r.id]=0;});
+  var vals=Object.values?Object.values(votes||{}):(function(o){var a=[];for(var k in o)a.push(o[k]);return a;})(votes||{});
+  vals.forEach(function(v){if(v.choice&&counts[v.choice]!==undefined)counts[v.choice]++;});
+  var total=ROLES.reduce(function(a,r){return a+(counts[r.id]||0);},0)||1;
+  if(shopName) document.getElementById('role-title').textContent='EP4｜'+shopName+'　商品角色判定';
+  var wrap=document.getElementById('role-bars');wrap.innerHTML='';
+  ROLES.forEach(function(r){
+    var cnt=counts[r.id]||0;var pct=Math.round(cnt/total*100);
+    var row=document.createElement('div');row.className='bar-row';
+    row.innerHTML='<div class="bar-lbl">'+r.ico+' '+r.id+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(pct>0?5:0,pct)+'%;background:linear-gradient(90deg,#1A3A5C,#3498DB);color:#fff;">'+cnt+'</div></div><div class="bar-pct">'+pct+'%</div>';
     wrap.appendChild(row);
   });
 }
 
-// ── TIMER ──
+// ── 搶答名單 ──
+function renderBuzzList(list){
+  var wrap=document.getElementById('bl-rows');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  var typeColor={'搶答':'#E74C3C','評審指定':'#3498DB','機會卡':'#9B59B6'};
+  var typeIcon={'搶答':'⚡','評審指定':'👆','機會卡':'🃏'};
+  (list||[]).forEach(function(b){
+    var row=document.createElement('div');row.className='bl-row';
+    var tc=typeColor[b.type]||'#888';
+    row.innerHTML='<span style="font-size:clamp(18px,2.5vw,30px);">'+(typeIcon[b.type]||'•')+'</span><span style="font-size:clamp(14px,2vw,24px);font-weight:800;color:#EAE7E0;flex:1;">'+b.shop+'</span><span style="font-size:clamp(11px,1.4vw,16px);font-weight:700;color:'+tc+';padding:4px 12px;border:1.5px solid '+tc+';border-radius:20px;">'+b.type+'</span>';
+    wrap.appendChild(row);
+  });
+  if(!(list&&list.length)){wrap.innerHTML='<div style="font-size:20px;color:#333;text-align:center;">尚無名單</div>';}
+}
+
+// ── 倒數計時 ──
 function applyTimer(t){
   if(!t||Date.now()-t.ts>5000)return;
-  const pct=t.pct,cls=pct<=.2?'d':pct<=.4?'w':'';
-  // 搶答模式：更新搶答畫面的計時
+  var pct=t.pct,cls=pct<=.2?'d':pct<=.4?'w':'';
   if(t.isBuzz){
-    const bn=document.getElementById('buzz-num');
-    const bb=document.getElementById('buzz-bar');
-    const bl=document.getElementById('buzz-label');
-    if(bn) bn.textContent=t.str;
-    if(bb) bb.style.width=(pct*100)+'%';
-    if(bl) bl.textContent=t.q||'搶！搶！搶！';
-    return;
+    // 搶答模式
+    var bn=document.getElementById('buzz-num');
+    var bb=document.getElementById('buzz-bar');
+    var bt=document.getElementById('buzz-tag');
+    if(bn){bn.textContent=t.str;bn.className='buzz-big'+(cls?' '+cls:'');}
+    if(bb){bb.style.width=(pct*100)+'%';bb.className='tm-bar'+(cls?' '+cls:'');}
+    if(bt) bt.textContent=t.q||'搶！搶！搶！';
+    if(cls==='d'&&soundReady) soundTick();
+  } else {
+    // 一般倒數
+    var tm=document.getElementById('tm-big');
+    var tb=document.getElementById('tm-bar');
+    if(tm){tm.textContent=t.str;tm.className='tm-big'+(cls?' '+cls:'');}
+    if(document.getElementById('tm-q')&&t.q) document.getElementById('tm-q').textContent=t.q;
+    if(tb){tb.style.width=(pct*100)+'%';tb.className='tm-bar'+(cls?' '+cls:'');}
+    if(cls==='d'&&soundReady) soundTick();
   }
-  // 一般計時模式
-  document.getElementById('tm-big').textContent=t.str;
-  document.getElementById('tm-big').className='tm-big'+(cls?' '+cls:'');
-  if(t.q)document.getElementById('tm-q').textContent=t.q;
-  const bar=document.getElementById('tm-bar');
-  bar.style.width=(pct*100)+'%';
-  bar.className='tm-bar'+(cls?' '+cls:'');
 }
 
-// ── MAIN APPLY ──
+// ── 主要狀態套用 ──
 function applyState(d){
-  if(!d)return;
-  const sc=d.screen;
-  const ep=parseInt(d.ep)||1;
-  const shop=d.shop||'';
+  if(!d||!d.screen)return;
+  var sc=d.screen;
+  var ep=parseInt(d.ep)||1;
+  var shop=d.shop||'';
+  var isNew=(d.ts&&d.ts!==lastTs);
+  if(isNew) lastTs=d.ts||lastTs;
 
-  if(sc) show(sc);
+  // 1. 切換畫面
+  show(sc);
 
-  // EP labels
+  // 2. EP 標題更新
   document.getElementById('sb-ep').textContent=EP_LABELS[ep-1];
-  document.getElementById('vt-pre-t').textContent=shop?EP_VT[ep-1]+'｜前測　'+shop:EP_VT[ep-1]+'｜前測';
-  document.getElementById('vt-post-t').textContent=shop?EP_VT[ep-1]+'｜後測　'+shop:EP_VT[ep-1]+'｜後測';
+  document.getElementById('vt-pre-t').textContent=EP_VT[ep-1]+'｜前測'+(shop?'　'+shop:'');
+  document.getElementById('vt-post-t').textContent=EP_VT[ep-1]+'｜後測'+(shop?'　'+shop:'');
   document.getElementById('vt-pre-s').textContent=EP_VS[ep-1];
 
-  // Vote data
+  // 3. 投票數據
   try{
-    const vdRaw=d.vd||localStorage.getItem('vd');
+    var vdRaw=d.vd;
     if(vdRaw){
-      const vd=JSON.parse(vdRaw);
+      var vd=JSON.parse(vdRaw);
       if(vd.ph==='pre'){preRate=vd.rate;renderVote(true,vd.r,vd.y,vd.g,vd.rate);}
       else{postRate=vd.rate;renderVote(false,vd.r,vd.y,vd.g,vd.rate);}
     }
   }catch(e){}
 
-  // Compare
+  // 4. 前後對比
   if(sc==='compare'){
     try{
-      const cmpData=JSON.parse(d.cmpData||'{"pre":null,"post":null}');
+      var cmpData=JSON.parse(d.cmpData||'{"pre":null,"post":null}');
       renderCompare(cmpData.pre,cmpData.post,d.cmpShop||'');
     }catch(e){}
   }
 
-  // Scoreboard
+  // 5. 分數榜
   if(sc==='scoreboard'){
     try{renderSb(JSON.parse(d.scores||'{}'),ep);}catch(e){}
   }
 
-  // Unlock
+  // 6. 解鎖
   if(sc==='unlock'){
-    try{const u=JSON.parse(d.unlock||'{}');renderUnlock(u.shop||'',u.res||'',u.tot||0);}catch(e){}
+    try{var u=JSON.parse(d.unlock||'{}');renderUnlock(u.shop||'',u.res||'',u.tot||0);}catch(e){}
   }
 
-  // Token
+  // 7. 籌碼
   if(sc==='token'&&d.tokenRound){
-    fetch(`${DB}/votes/${d.tokenRound}.json`).then(r=>r.json()).then(v=>renderToken(v)).catch(()=>{});
+    fetch(DB+'/votes/'+d.tokenRound+'.json').then(function(r){return r.json();}).then(function(v){renderToken(v);}).catch(function(){});
   }
 
-  // Role
+  // 8. 五角色
   if(sc==='role'&&d.roleRound){
-    fetch(`${DB}/votes/${d.roleRound}.json`).then(r=>r.json()).then(v=>renderRole(v,d.roleShop||'')).catch(()=>{});
+    fetch(DB+'/votes/'+d.roleRound+'.json').then(function(r){return r.json();}).then(function(v){renderRole(v,d.roleShop||'');}).catch(function(){});
   }
 
-  // Buzz list
+  // 9. 搶答名單
   if(sc==='buzzlist'){
-    try{
-      const blRaw=d.buzzList||localStorage.getItem('buzzList');
-      if(blRaw) renderBuzzList(JSON.parse(blRaw));
-    }catch(e){}
+    try{renderBuzzList(JSON.parse(d.buzzList||'[]'));}catch(e){}
   }
 
-  // Timer
+  // 10. Timer
+  try{if(d.timer)applyTimer(JSON.parse(d.timer));}catch(e){}
+
+  // 11. 音效（只在新指令時播）
+  if(isNew&&soundReady){
+    if(sc==='buzz') soundBuzzStart();
+    else if(sc==='vpre'||sc==='vpost') soundReveal();
+    else if(sc==='compare'){
+      setTimeout(function(){
+        var pre=parseFloat((document.getElementById('cm-pre')||{}).textContent)||0;
+        var post=parseFloat((document.getElementById('cm-post')||{}).textContent)||0;
+        if(post-pre>=20) soundWin(); else soundNeutral();
+      },800);
+    }
+    else if(sc==='token') soundToken();
+    else if(sc==='unlock'){soundUnlock();setTimeout(soundSparkle,1200);}
+    else if(sc==='scoreboard') soundReveal();
+  }
+
+  // 診斷
+  document.getElementById('diag').textContent=new Date().toLocaleTimeString()+' │ screen:'+sc+' │ ep:'+ep+(isNew?' ★':'');
+}
+
+// ── 音效系統 ──
+var soundReady=false;
+var _ac=null;
+function getAC(){
+  if(!_ac)_ac=new(window.AudioContext||window.webkitAudioContext)();
+  if(_ac.state==='suspended')_ac.resume();
+  return _ac;
+}
+function playTone(freq,dur,vol,type,t,ac){
+  var o=ac.createOscillator(),g=ac.createGain();
+  o.connect(g);g.connect(ac.destination);
+  o.type=type||'sine';
+  o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(vol||0.3,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  o.start(t);o.stop(t+dur+0.05);
+}
+function soundBuzzStart(){var ac=getAC(),t=ac.currentTime;[220,277,330,415,523,659,880].forEach(function(f,i){playTone(f,0.12,0.25,'sawtooth',t+i*0.07,ac);});for(var i=0;i<8;i++)playTone(55,0.08,0.15,'square',t+i*0.12,ac);}
+function soundTick(){var ac=getAC(),t=ac.currentTime;playTone(1200,0.05,0.3,'square',t,ac);playTone(800,0.05,0.2,'square',t+0.03,ac);}
+function soundReveal(){var ac=getAC(),t=ac.currentTime;var o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(440,t+0.8);g.gain.setValueAtTime(0.15,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.9);o.start(t);o.stop(t+1);[523,659,784].forEach(function(f,i){playTone(f,0.6,0.2,'sine',t+0.9+i*0.06,ac);});}
+function soundWin(){var ac=getAC(),t=ac.currentTime;[523,659,784,1047,784,1047,1319].forEach(function(f,i){playTone(f,0.18,0.3,'sine',t+i*0.14,ac);});[392,523,659,784].forEach(function(f,i){playTone(f,0.5,0.15,'triangle',t+1.1,ac);});}
+function soundNeutral(){var ac=getAC(),t=ac.currentTime;[392,494,587].forEach(function(f,i){playTone(f,0.4,0.15,'sine',t+i*0.15,ac);});}
+function soundToken(){var ac=getAC(),t=ac.currentTime;for(var i=0;i<5;i++)playTone(1800+Math.random()*400,0.04,0.2,'sine',t+i*0.08,ac);for(var j=0;j<6;j++)playTone(220+j*80,0.1,0.15,'triangle',t+0.5+j*0.1,ac);}
+function soundUnlock(){var ac=getAC(),t=ac.currentTime;var o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sine';o.frequency.setValueAtTime(80,t);o.frequency.exponentialRampToValueAtTime(320,t+0.3);g.gain.setValueAtTime(0.3,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.4);o.start(t);o.stop(t+0.5);[523,659,784,1047,1319,1047,784,1047,1319].forEach(function(f,i){playTone(f,0.16,0.25,'sine',t+0.3+i*0.11,ac);});}
+function soundSparkle(){var ac=getAC(),t=ac.currentTime;[2093,2349,2637,3136,2637,2349].forEach(function(f,i){playTone(f,0.08,0.06,'sine',t+i*0.18,ac);});}
+document.addEventListener('click',function(){if(!soundReady){soundReady=true;getAC();}},{once:true});
+document.addEventListener('touchstart',function(){if(!soundReady){soundReady=true;getAC();}},{once:true});
+
+// ── Timer 輪詢（localStorage，給同台電腦用） ──
+function pollTimer(){
   try{
-    const tRaw=d.timer||localStorage.getItem('timer');
-    if(tRaw)applyTimer(JSON.parse(tRaw));
+    var tRaw=localStorage.getItem('timer');
+    if(tRaw) applyTimer(JSON.parse(tRaw));
   }catch(e){}
 }
 
-// ── BUZZ LIST ──
-function renderBuzzList(list){
-  const wrap=document.getElementById('buzzlist-rows');
-  if(!wrap) return;
-  wrap.innerHTML='';
-  const typeColor={'搶答':'#E74C3C','評審指定':'#3498DB','機會卡':'#9B59B6'};
-  const typeIcon={'搶答':'⚡','評審指定':'👆','機會卡':'🃏'};
-  (list||[]).forEach((b,i)=>{
-    const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:16px;padding:14px 24px;background:#0e0e0e;border-radius:10px;border:1px solid #1a1a1a;';
-    const tc=typeColor[b.type]||'#888';
-    row.innerHTML=`
-      <span style="font-size:clamp(18px,2.5vw,30px);">${typeIcon[b.type]||'•'}</span>
-      <span style="font-size:clamp(14px,2vw,24px);font-weight:800;color:#EAE7E0;flex:1;">${b.shop}</span>
-      <span style="font-size:clamp(11px,1.4vw,16px);font-weight:700;color:${tc};padding:4px 12px;border:1.5px solid ${tc};border-radius:20px;">${b.type}</span>
-    `;
-    wrap.appendChild(row);
-  });
-  if((list||[]).length===0){
-    wrap.innerHTML='<div style="font-size:20px;color:#333;text-align:center;">尚無名單</div>';
-  }
-}
-
-// ── POLL ──
-function poll(){
-  // Firebase 路徑
+// ── Firebase 輪詢 ──
+function pollFirebase(){
   fetch(DB+'/display.json')
-    .then(function(res){return res.json();})
-    .then(function(fbData){
-      var lsScreen=localStorage.getItem('displayScreen');
-      var lsTs=parseInt(localStorage.getItem('displayTs')||'0');
-      var fbTs=fbData?fbData.ts||0:0;
-
-      if(fbTs>=lsTs&&fbData&&fbData.screen){
-        applyState(fbData);
-      } else if(lsScreen){
-        applyState({
-          screen:lsScreen,
-          ep:localStorage.getItem('displayEP')||'1',
-          ph:localStorage.getItem('displayPh')||'pre',
-          shop:localStorage.getItem('curShop')||'',
-          scores:localStorage.getItem('shopScores'),
-          unlock:localStorage.getItem('unlockInfo'),
-          cmpShop:localStorage.getItem('compareShop')||'',
-          cmpData:localStorage.getItem('compareData'),
-          vd:localStorage.getItem('vd'),
-          buzzList:localStorage.getItem('buzzList'),
-        });
-      }
-
-      // Timer
-      var fbTimerRaw=fbData&&fbData.timer?fbData.timer:null;
-      var lsTimerRaw=localStorage.getItem('timer');
-      var tRaw=fbTimerRaw||lsTimerRaw;
-      if(tRaw){try{applyTimer(JSON.parse(tRaw));}catch(e){}}
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d&&d.screen) applyState(d);
     })
     .catch(function(){
-      // Firebase 失敗時用 localStorage
-      var lsScreen=localStorage.getItem('displayScreen');
-      if(lsScreen){
-        applyState({
-          screen:lsScreen,
-          ep:localStorage.getItem('displayEP')||'1',
-          ph:localStorage.getItem('displayPh')||'pre',
-          shop:localStorage.getItem('curShop')||'',
-          scores:localStorage.getItem('shopScores'),
-          unlock:localStorage.getItem('unlockInfo'),
-          cmpShop:localStorage.getItem('compareShop')||'',
-          cmpData:localStorage.getItem('compareData'),
-          vd:localStorage.getItem('vd'),
-          buzzList:localStorage.getItem('buzzList'),
-        });
-      }
-      var tRaw=localStorage.getItem('timer');
-      if(tRaw){try{applyTimer(JSON.parse(tRaw));}catch(e){}}
+      document.getElementById('diag').textContent='連線失敗，重試中…';
     });
 }
-setInterval(poll,800);
-poll();
+
+// 啟動
+setInterval(pollFirebase,400);
+setInterval(pollTimer,200);
+pollFirebase();
 </script>
 </body>
 </html>
