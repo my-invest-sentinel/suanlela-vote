@@ -326,13 +326,13 @@ function applyState(d){
   const shop=d.shop||'';
 
   if(sc){
-    // 根據畫面切換播放對應音效
+    show(sc); // ← 切換畫面
+    // 音效
     if(sc!==_lastScreen){
       _lastScreen=sc;
       if(sc==='buzz') soundBuzzStart();
       else if(sc==='vpre'||sc==='vpost') soundReveal();
       else if(sc==='compare'){
-        // 延遲播，等畫面渲染後再看進步幅度
         setTimeout(function(){
           var pre=parseFloat((document.getElementById('cm-pre')||{}).textContent)||0;
           var post=parseFloat((document.getElementById('cm-post')||{}).textContent)||0;
@@ -451,6 +451,85 @@ function poll(){
       if(tRaw){try{applyTimer(JSON.parse(tRaw));}catch(e){}}
     });
 }
+
+// ══ 音效系統（Web Audio API）══
+var _ac=null;
+function getAC(){
+  if(!_ac)_ac=new(window.AudioContext||window.webkitAudioContext)();
+  if(_ac.state==='suspended')_ac.resume();
+  return _ac;
+}
+function playTone(freq,dur,vol,type,t,ac){
+  var o=ac.createOscillator(),g=ac.createGain();
+  o.connect(g);g.connect(ac.destination);
+  o.type=type||'sine';
+  o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(vol||0.3,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  o.start(t);o.stop(t+dur+0.05);
+}
+function soundBuzzStart(){
+  var ac=getAC(),t=ac.currentTime;
+  [220,277,330,415,523,659,880].forEach(function(f,i){playTone(f,0.12,0.25,'sawtooth',t+i*0.07,ac);});
+  for(var i=0;i<8;i++)playTone(55,0.08,0.15,'square',t+i*0.12,ac);
+}
+function soundTick(){
+  var ac=getAC(),t=ac.currentTime;
+  playTone(1200,0.05,0.3,'square',t,ac);
+  playTone(800,0.05,0.2,'square',t+0.03,ac);
+}
+function soundReveal(){
+  var ac=getAC(),t=ac.currentTime;
+  var o=ac.createOscillator(),g=ac.createGain();
+  o.connect(g);g.connect(ac.destination);
+  o.type='sawtooth';
+  o.frequency.setValueAtTime(110,t);
+  o.frequency.exponentialRampToValueAtTime(440,t+0.8);
+  g.gain.setValueAtTime(0.15,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.9);
+  o.start(t);o.stop(t+1);
+  [523,659,784].forEach(function(f,i){playTone(f,0.6,0.2,'sine',t+0.9+i*0.06,ac);});
+}
+function soundWin(){
+  var ac=getAC(),t=ac.currentTime;
+  [523,659,784,1047,784,1047,1319].forEach(function(f,i){playTone(f,0.18,0.3,'sine',t+i*0.14,ac);});
+  [392,523,659,784].forEach(function(f,i){playTone(f,0.5,0.15,'triangle',t+1.1,ac);});
+}
+function soundNeutral(){
+  var ac=getAC(),t=ac.currentTime;
+  [392,494,587].forEach(function(f,i){playTone(f,0.4,0.15,'sine',t+i*0.15,ac);});
+}
+function soundToken(){
+  var ac=getAC(),t=ac.currentTime;
+  for(var i=0;i<5;i++)playTone(1800+Math.random()*400,0.04,0.2,'sine',t+i*0.08,ac);
+  for(var j=0;j<6;j++)playTone(220+j*80,0.1,0.15,'triangle',t+0.5+j*0.1,ac);
+}
+function soundUnlock(){
+  var ac=getAC(),t=ac.currentTime;
+  var o=ac.createOscillator(),g=ac.createGain();
+  o.connect(g);g.connect(ac.destination);
+  o.type='sine';
+  o.frequency.setValueAtTime(80,t);
+  o.frequency.exponentialRampToValueAtTime(320,t+0.3);
+  g.gain.setValueAtTime(0.3,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+  o.start(t);o.stop(t+0.5);
+  [523,659,784,1047,1319,1047,784,1047,1319].forEach(function(f,i){playTone(f,0.16,0.25,'sine',t+0.3+i*0.11,ac);});
+  playTone(2093,0.8,0.1,'sine',t+0.35,ac);
+}
+function soundSparkle(){
+  var ac=getAC(),t=ac.currentTime;
+  [2093,2349,2637,3136,2637,2349].forEach(function(f,i){playTone(f,0.08,0.06,'sine',t+i*0.18,ac);});
+}
+var _soundReady=false;
+function initSound(){
+  if(_soundReady)return;
+  _soundReady=true;
+  getAC();
+}
+document.addEventListener('click',initSound,{once:true});
+document.addEventListener('touchstart',initSound,{once:true});
+
 
 setInterval(poll,800);
 poll();
