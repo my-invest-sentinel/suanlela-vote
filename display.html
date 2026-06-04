@@ -76,6 +76,7 @@ html,body{height:100%;background:#000;color:#EAE7E0;overflow:hidden;font-family:
 .bar-fill{height:100%;border-radius:7px;display:flex;align-items:center;padding-left:12px;font-size:clamp(13px,1.8vw,22px);font-weight:800;transition:width .9s cubic-bezier(.4,0,.2,1);}
 .bar-pct{font-size:clamp(13px,1.6vw,20px);font-weight:700;color:#333;min-width:48px;text-align:right;}
 .wm{position:absolute;bottom:12px;right:16px;font-size:9px;color:#111;letter-spacing:.12em;}
+.diag{position:fixed;bottom:0;left:0;background:rgba(0,0,0,.85);color:#555;font-size:10px;padding:4px 8px;z-index:999;font-family:monospace;letter-spacing:.03em;pointer-events:none;}
 </style>
 </head>
 <body>
@@ -310,8 +311,16 @@ function applyTimer(t){
 }
 
 // ── MAIN APPLY ──
+function updateDiag(src,screen,ts){
+  var el=document.getElementById('diag');
+  if(!el)return;
+  var now=new Date().toLocaleTimeString();
+  el.textContent=now+' │ '+src+' │ screen:'+screen+' │ ts:'+(ts?String(ts).slice(-6):'—');
+}
+
 function applyState(d){
   if(!d)return;
+  updateDiag(d.ts?'FB':'LS', d.screen||'?', d.ts);
   const sc=d.screen;
   const ep=parseInt(d.ep)||1;
   const shop=d.shop||'';
@@ -429,6 +438,7 @@ function poll(){
       var lsTs=parseInt(localStorage.getItem('displayTs')||'0');
       var fbTs=fbData?fbData.ts||0:0;
 
+      // 每次都執行，不做比較
       if(fbTs>=lsTs&&fbData&&fbData.screen){
         applyState(fbData);
       } else if(lsScreen){
