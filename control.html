@@ -157,7 +157,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
         <option value="">— 選擇店家 —</option>
         <option>靜日香研</option><option>胖昇</option><option>新協泰米行</option>
         <option>九尖茶廠</option><option>波嶼</option><option>紙布家</option>
-        <option>嘉禮慕華</option><option>馨眠</option><option>樸樂咖啡</option><option>安餃子</option>
+        <option>嘉禮慕華</option><option>馨眠</option><option>樸樂咖啡</option><option>安餃子</option><option>九湯屋</option>
       </select>
     </div>
     <div class="current-shop" id="curShopDisp">尚未選擇</div>
@@ -233,7 +233,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
         <option value="">+ 選店家</option>
         <option>靜日香研</option><option>胖昇</option><option>新協泰米行</option>
         <option>九尖茶廠</option><option>波嶼</option><option>紙布家</option>
-        <option>嘉禮慕華</option><option>馨眠</option><option>樸樂咖啡</option><option>安餃子</option>
+        <option>嘉禮慕華</option><option>馨眠</option><option>樸樂咖啡</option><option>安餃子</option><option>九湯屋</option>
       </select>
       <select class="sel" id="buzzTypeSel" style="font-size:10px;">
         <option value="搶答">搶答</option>
@@ -360,7 +360,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 
 <script>
 const DB='https://suanlela-vote-default-rtdb.firebaseio.com';
-const SHOPS=['靜日香研','胖昇','新協泰米行','九尖茶廠','波嶼','紙布家','嘉禮慕華','馨眠','樸樂咖啡','安餃子'];
+const SHOPS=['靜日香研','胖昇','新協泰米行','九尖茶廠','波嶼','紙布家','嘉禮慕華','馨眠','樸樂咖啡','安餃子','九湯屋'];
 
 // 座位圖定義：每排用 {col, id, gray} 明確指定欄位
 const SEAT_DATA={
@@ -624,7 +624,7 @@ async function startToken(){
   if(!curEP===2&&!confirm('籌碼投票通常在EP2使用，確定要開始？'))return;
   roundId='ep2_token_'+Date.now();
   votes={};refreshMap();updStats();
-  const shops=['靜日香研','胖昇','新協泰米行','九尖茶廠','波嶼','紙布家','嘉禮慕華','馨眠','樸樂咖啡','安餃子'];
+  const shops=['靜日香研','胖昇','新協泰米行','九尖茶廠','波嶼','紙布家','嘉禮慕華','馨眠','樸樂咖啡','安餃子','九湯屋'];
   try{
     await fetch(`${DB}/round.json`,{method:'PUT',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({active:true,id:roundId,ep:'ep2',phase:'token',shops,startedAt:Date.now()})});
